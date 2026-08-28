@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gravura Perdizes — Dashboard de Consumo de Água</title>
+<style>
+  :root{
+    --bg: #ffffff;
+    --panel: #f7f7f8;
+    --panel-2: #eef0f1;
+    --line: #e1e4e7;
+    --af: #2e9bf0;
+    --af-2: #0f6fc0;
+    --aq: #ff6b3d;
+    --aq-2: #c2470f;
+    --total: #7c5cff;
+    --total-2: #5636d6;
+    --ac: #14b881;
+    --newc: #2563eb;
+    --text: #1c1f22;
+    --text-dim: #5b6168;
+    --text-faint: #9aa1a8;
+    --up: #e5484d;
+    --down: #14b881;
+    --flat: #9aa1a8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(46,155,240,0.05), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(255,107,61,0.04), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Söhne', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height:100vh;
+    padding: 28px 20px 60px;
+  }
+  .wrap{max-width:1240px;margin:0 auto;}
+
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap: 20px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+    padding-bottom:20px; margin-bottom:26px;
+  }
+  .brand-eyebrow{
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--af-2); font-weight:600; margin-bottom:6px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .drop-dot{width:7px;height:7px;border-radius:50%;background:var(--af);
+    box-shadow:0 0 10px 2px rgba(46,155,240,.6);}
+  h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 30px; font-weight:600; margin:0; letter-spacing:-.01em;
+    color:var(--text);
+  }
+  h1 em{color:var(--af-2); font-style:normal;}
+  .subtitle{color:var(--text-dim); font-size:13.5px; margin-top:6px; max-width:560px;}
+  .period-badge{
+    text-align:right; font-size:12px; color:var(--text-faint);
+  }
+  .period-badge .big{
+    font-size:22px; color:var(--af-2); font-family:Georgia, serif; display:block; margin-bottom:2px;
+  }
+
+  .kpis{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:30px;
+  }
+  .kpi{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:10px; padding:16px 18px;
+    position:relative; overflow:hidden;
+  }
+  .kpi::after{
+    content:""; position:absolute; right:-20px; top:-20px; width:80px; height:80px;
+    background:radial-gradient(circle, rgba(46,155,240,.10), transparent 70%);
+  }
+  .kpi .label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint);}
+  .kpi .value{font-size:24px; font-family:Georgia,serif; margin-top:6px; color:var(--text);}
+  .kpi .value small{font-size:13px; color:var(--text-dim); font-family: inherit;}
+
+  .card{
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px;
+    padding:22px 24px; margin-bottom:22px;
+  }
+  .card h2{
+    font-family:Georgia, serif; font-size:18px; margin:0 0 4px; color:var(--text);
+    display:flex; align-items:center; gap:10px;
+  }
+  .card h2 .idx{
+    font-size:11px; color:var(--af-2); border:1px solid var(--af); border-radius:999px;
+    width:22px;height:22px; display:inline-flex; align-items:center; justify-content:center;
+    font-family: inherit;
+  }
+  .card .desc{color:var(--text-dim); font-size:13px; margin-bottom:18px;}
+
+  .controls-row{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:16px;}
+  select, .chip-input{
+    background:#ffffff; border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:9px 12px; font-size:13.5px; font-family:inherit;
+    outline:none;
+  }
+  select:focus, .chip-input:focus{border-color:var(--af);}
+  .field-label{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-faint); margin-bottom:6px; display:block;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .chip{
+    background:rgba(46,155,240,.12); border:1px solid var(--af); color:var(--af-2);
+    padding:6px 10px 6px 12px; border-radius:999px; font-size:12.5px; display:flex; align-items:center; gap:8px;
+  }
+  .chip.chip-ac{background:rgba(20,184,129,.12); border-color:var(--ac); color:#0d8a61;}
+  .chip button{
+    background:none;border:none;color:inherit; cursor:pointer; font-size:14px; line-height:1;
+    padding:0; opacity:.7;
+  }
+  .chip button:hover{opacity:1;}
+
+  .multi-picker{position:relative;}
+  .multi-dropdown{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:20;
+    background:#ffffff; border:1px solid var(--line); border-radius:10px;
+    width:280px; max-height:260px; overflow-y:auto; padding:8px; display:none;
+    box-shadow:0 12px 30px rgba(20,25,30,.12);
+  }
+  .multi-dropdown.open{display:block;}
+  .multi-dropdown input{
+    width:100%; margin-bottom:8px; padding:8px 10px; background:#f7f7f8; border:1px solid var(--line);
+    border-radius:6px; color:var(--text); font-size:12.5px;
+  }
+  .opt{
+    padding:7px 8px; font-size:13px; border-radius:6px; cursor:pointer; color:var(--text-dim);
+    display:flex; justify-content:space-between;
+  }
+  .opt:hover{background:rgba(0,0,0,.04); color:var(--text);}
+  .opt.disabled{opacity:.3; cursor:not-allowed;}
+  .opt.disabled:hover{background:none;}
+  .opt.opt-ac{color:#0d8a61; font-weight:600;}
+
+  .hint{font-size:11.5px; color:var(--text-faint); margin-top:4px;}
+
+  .chart-box{position:relative; width:100%; height:340px;}
+  .chart-box.tall{height:380px;}
+  .chart-box svg{width:100%; height:100%; overflow:visible;}
+
+  .bar-rect{ transition: opacity .15s; cursor:pointer; }
+  .bar-rect:hover{ opacity:.82; }
+  .axis-label{ fill:#8a9198; font-size:11.5px; font-family:inherit; }
+  .grid-line{ stroke: rgba(20,25,30,0.08); stroke-width:1; }
+  .val-label{ fill:#1c1f22; font-size:10.5px; font-family:inherit; text-anchor:middle; }
+
+  .svg-tooltip{
+    position:absolute; pointer-events:none; background:#1c1f22; border:1px solid #1c1f22;
+    border-radius:8px; padding:8px 11px; font-size:12.5px; color:#ffffff; white-space:nowrap;
+    transform:translate(-50%,-110%); opacity:0; transition:opacity .1s; z-index:10;
+    box-shadow:0 8px 20px rgba(20,25,30,.25);
+  }
+  .svg-tooltip.show{opacity:1;}
+  .svg-tooltip .t-title{color:#c3c8cd; font-size:10.5px; margin-bottom:2px;}
+
+  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-bottom:6px; font-size:12.5px;}
+  .legend-item{display:flex; align-items:center; gap:7px; color:var(--text-dim);}
+  .legend-dot{width:10px;height:10px;border-radius:50%;}
+  .legend-sq{width:10px;height:10px;border-radius:3px;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{
+    text-align:right; color:var(--text-faint); font-weight:500; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.05em; padding:10px 6px; border-bottom:1px solid var(--line);
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{padding:11px 6px; text-align:right; border-bottom:1px solid rgba(20,25,30,.05); color:var(--text);}
+  tbody td:first-child{text-align:left; color:var(--text-dim); font-weight:500;}
+  tbody tr:hover{background:rgba(20,25,30,.025);}
+  tbody td.sep-left{border-left:1px solid rgba(20,25,30,.06);}
+  .var-cell{display:inline-flex; align-items:center; gap:5px; font-variant-numeric: tabular-nums;}
+  .var-up{color:var(--up); font-weight:600;}
+  .var-down{color:var(--down); font-weight:600;}
+  .var-flat{color:var(--flat);}
+  .var-na{color:var(--text-faint);}
+  .arrow{font-size:11px;}
+
+  .stat-row{display:flex; gap:14px; margin-top:16px; flex-wrap:wrap;}
+  .stat{
+    flex:1; min-width:140px; background:#f7f7f8; border:1px solid var(--line);
+    border-radius:9px; padding:12px 14px;
+  }
+  .stat .l{font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-faint);}
+  .stat .v{font-size:19px; font-family:Georgia,serif; margin-top:4px;}
+
+  /* ---------- Section 1: consumo total do condomínio ---------- */
+  .month-stats-grid{
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:10px; margin-top:16px;
+  }
+  .month-stat-cell{
+    background:#f7f7f8; border:1px solid var(--line); border-radius:9px;
+    padding:10px 8px; text-align:center;
+  }
+  .month-stat-cell .m-label{
+    font-size:11px; font-weight:600; color:var(--text); margin-bottom:8px;
+    padding-bottom:6px; border-bottom:1px solid var(--line);
+  }
+  .month-stat-cell .m-row{font-size:10.5px; color:var(--text-faint); margin-top:4px;}
+  .month-stat-cell .m-row b{color:var(--text-dim); font-weight:600;}
+  @media (max-width:760px){
+    .month-stats-grid{grid-template-columns:repeat(3, 1fr);}
+  }
+
+  /* ---------- Section 5: variação por apartamento em um mês ---------- */
+  .var-all-container{
+    max-height:620px; overflow-y:auto; border:1px solid var(--line); border-radius:10px;
+    padding:6px 14px; background:#fbfbfc;
+  }
+  .var-row{
+    display:grid; grid-template-columns:84px 1fr 96px 118px; align-items:center;
+    gap:10px; height:30px; border-bottom:1px solid rgba(20,25,30,.04);
+  }
+  .var-row.is-ac{background:rgba(20,184,129,.05);}
+  .var-row:last-child{border-bottom:none;}
+  .var-row .unit-label{font-size:12.5px; color:var(--text); font-weight:500;}
+  .var-row .unit-label.ac{color:#0d8a61; font-weight:700;}
+  .var-row .track{position:relative; height:14px; background:transparent;}
+  .var-row .center-line{position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:var(--line);}
+  .var-row .bar{position:absolute; top:0; height:100%; border-radius:3px; min-width:2px;}
+  .var-row .bar.up{left:50%; background:var(--up);}
+  .var-row .bar.down{right:50%; background:var(--down);}
+  .var-row .consumo-val{font-size:11.5px; color:var(--text-faint); text-align:right; font-variant-numeric:tabular-nums;}
+  .var-row .pct-val{font-size:12.5px; text-align:right; font-variant-numeric:tabular-nums; font-weight:600;}
+  .var-row .pct-val.up{color:var(--up);}
+  .var-row .pct-val.down{color:var(--down);}
+  .var-row .pct-val.flat{color:var(--flat); font-weight:400;}
+  .var-row .pct-val.newc{color:var(--newc); font-weight:600;}
+
+  /* ---------- Section 6: top 15 consumidores do mês ---------- */
+  .top15-container{display:flex; flex-direction:column; gap:2px;}
+  .top15-row{
+    display:grid; grid-template-columns:34px 84px 1fr 84px 116px; align-items:center;
+    gap:10px; padding:7px 4px; border-bottom:1px solid rgba(20,25,30,.04);
+  }
+  .top15-row.is-ac{background:rgba(20,184,129,.06);}
+  .top15-row:last-child{border-bottom:none;}
+  .top15-row .rank{
+    font-size:11px; font-weight:700; color:var(--text-faint); text-align:center;
+  }
+  .top15-row .rank.top3{color:var(--af-2);}
+  .top15-row .unit-label{font-size:12.5px; color:var(--text); font-weight:500;}
+  .top15-row .unit-label.ac{color:#0d8a61; font-weight:700;}
+  .top15-row .track{position:relative; height:14px; background:rgba(20,25,30,.04); border-radius:3px; overflow:hidden;}
+  .top15-row .bar{position:absolute; left:0; top:0; height:100%; border-radius:3px; background:#2e9bf0;}
+  .top15-row.is-ac .bar{background:var(--ac);}
+  .top15-row .consumo-val{font-size:12px; color:var(--text); text-align:right; font-variant-numeric:tabular-nums; font-weight:600;}
+  .top15-row .pct-val{font-size:12px; text-align:right; font-variant-numeric:tabular-nums; font-weight:600;}
+  .top15-row .pct-val.up{color:var(--up);}
+  .top15-row .pct-val.down{color:var(--down);}
+  .top15-row .pct-val.flat{color:var(--flat); font-weight:400;}
+  .top15-row .pct-val.newc{color:var(--newc);}
+  .top15-row .pct-val.na{color:var(--text-faint); font-weight:400;}
+
+  /* ---------- Section 7: alertas de desvio de consumo ---------- */
+  .alert-container{display:flex; flex-direction:column; gap:8px;}
+  .alert-row{
+    display:grid; grid-template-columns:110px 1fr auto; align-items:center;
+    gap:14px; padding:12px 16px; border-radius:9px; border:1px solid var(--line);
+    border-left:4px solid var(--flat); background:#fbfbfc;
+  }
+  .alert-row.up{border-left-color:var(--up); background:rgba(229,72,77,.045);}
+  .alert-row.down{border-left-color:var(--down); background:rgba(20,184,129,.045);}
+  .alert-row.newc{border-left-color:var(--newc); background:rgba(37,99,235,.055);}
+  .alert-row .alert-unit{font-size:14px; font-weight:700; color:var(--text);}
+  .alert-row .alert-unit.ac{color:#0d8a61;}
+  .alert-row .alert-detail{font-size:12px; color:var(--text-dim);}
+  .alert-row .alert-detail .prev-val{color:var(--text-faint);}
+  .alert-row .alert-pct{font-size:16px; font-weight:700; text-align:right; white-space:nowrap;}
+  .alert-row .alert-pct.up{color:var(--up);}
+  .alert-row .alert-pct.down{color:var(--down);}
+  .alert-row .alert-pct.newc{color:var(--newc); font-size:13px;}
+  .alert-empty{
+    text-align:center; padding:28px 16px; color:var(--text-faint); font-size:13.5px;
+    border:1px dashed var(--line); border-radius:10px; background:#fbfbfc;
+  }
+
+  footer{text-align:center; color:var(--text-faint); font-size:11.5px; margin-top:36px;}
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+
+  @media (max-width:760px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    header{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow"><span class="drop-dot"></span>RESIDENCIAL GRAVURA PERDIZES</div>
+      <h1>Dashboard de <em>Consumo de Água</em></h1>
+      <div class="subtitle">Leituras individuais de 92 unidades (Bloco A) + Área Comum, consolidadas mês a mês a partir dos relatórios da Gestway. Consumo aberto em Água Fria (AF) e Água Quente (AQ).</div>
+    </div>
+    <div class="period-badge">
+      <span class="big" id="periodLabel">Out/25 – Ago/26</span>
+      11 meses de leitura consolidados
+    </div>
+  </header>
+
+  <div class="kpis" id="kpiStrip"></div>
+
+  <!-- 1. CONSUMO TOTAL DO CONDOMÍNIO -->
+  <div class="card">
+    <h2><span class="idx">1</span>Consumo total do condomínio</h2>
+    <div class="desc">Evolução do consumo somado de todas as unidades + área comum, mês a mês.</div>
+    <div class="legend" style="margin-bottom:4px;">
+      <div class="legend-item"><span class="legend-sq" style="background:#2e9bf0;"></span>Consumo total do condomínio</div>
+      <div class="legend-item"><span class="legend-sq" style="background:var(--total);"></span>Soma dos apartamentos</div>
+      <div class="legend-item"><span class="legend-sq" style="background:var(--ac);"></span>Área Comum</div>
+    </div>
+    <div class="chart-box" id="totalChartBox">
+      <div class="svg-tooltip" id="totalTooltip"></div>
+    </div>
+    <div class="month-stats-grid" id="totalMonthStats"></div>
+  </div>
+
+  <!-- 2. CONSUMO POR APARTAMENTO -->
+  <div class="card">
+    <h2><span class="idx">2</span>Consumo por apartamento</h2>
+    <div class="desc">Escolha uma unidade para ver o consumo mensal (m³) ao longo do período, com água fria, água quente e total lado a lado.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Unidade</span>
+        <select id="singleUnitSelect"></select>
+      </div>
+    </div>
+    <div class="legend" style="margin-bottom:4px;">
+      <div class="legend-item"><span class="legend-sq" style="background:var(--af);"></span>Água fria (AF)</div>
+      <div class="legend-item"><span class="legend-sq" style="background:var(--aq);"></span>Água quente (AQ)</div>
+      <div class="legend-item"><span class="legend-sq" style="background:var(--total);"></span>Total (AF+AQ)</div>
+    </div>
+    <div class="chart-box" id="singleChartBox">
+      <div class="svg-tooltip" id="singleTooltip"></div>
+    </div>
+    <div class="hint" id="singleHint"></div>
+  </div>
+
+  <!-- 3. COMPARATIVO ATÉ 5 APARTAMENTOS -->
+  <div class="card">
+    <h2><span class="idx">3</span>Comparativo entre apartamentos</h2>
+    <div class="desc">Selecione até 5 unidades para comparar a evolução do consumo total (AF+AQ) lado a lado.</div>
+    <div class="controls-row">
+      <div class="multi-picker">
+        <span class="field-label">Adicionar unidade</span>
+        <input class="chip-input" id="multiSearchDisplay" placeholder="Clique para escolher…" readonly>
+        <div class="multi-dropdown" id="multiDropdown">
+          <input type="text" id="multiSearchInput" placeholder="Buscar unidade…">
+          <div id="multiOptList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="chips" id="selectedChips"></div>
+    <div class="hint" id="multiHint">Nenhuma unidade selecionada — mostrando as 5 de maior consumo por padrão.</div>
+    <div class="legend" id="multiLegend" style="margin-top:14px;"></div>
+    <div class="chart-box tall" id="multiChartBox">
+      <div class="svg-tooltip" id="multiTooltip"></div>
+    </div>
+  </div>
+
+  <!-- 4. DEMONSTRATIVO POR APARTAMENTO -->
+  <div class="card">
+    <h2><span class="idx">4</span>Demonstrativo mensal — variação percentual</h2>
+    <div class="desc">Consumo mês a mês da unidade escolhida — água fria, água quente e total — com a variação percentual em relação ao mês anterior.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Unidade</span>
+        <select id="demoUnitSelect"></select>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Mês</th>
+          <th>AF (m³)</th>
+          <th>Var. AF</th>
+          <th class="sep-left">AQ (m³)</th>
+          <th>Var. AQ</th>
+          <th class="sep-left">Total (m³)</th>
+          <th>Var. Total</th>
+        </tr>
+      </thead>
+      <tbody id="demoTableBody"></tbody>
+    </table>
+    <div class="stat-row" id="demoStats"></div>
+  </div>
+
+  <!-- 5. VARIAÇÃO PERCENTUAL DE TODOS OS APARTAMENTOS EM UM MÊS -->
+  <div class="card">
+    <h2><span class="idx">5</span>Variação percentual — todos os apartamentos em um mês</h2>
+    <div class="desc">Escolha um mês para ver a variação do consumo total (AF+AQ) de todas as 92 unidades + área comum, em relação ao mês anterior.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Mês</span>
+        <select id="varMonthSelect"></select>
+      </div>
+      <div>
+        <span class="field-label">Ordenar por</span>
+        <select id="varSortSelect">
+          <option value="desc">Maior alta primeiro</option>
+          <option value="asc">Maior queda primeiro</option>
+          <option value="unit">Número da unidade</option>
+          <option value="consumo_desc">Maior consumo primeiro</option>
+          <option value="consumo_asc">Menor consumo primeiro</option>
+        </select>
+      </div>
+    </div>
+    <div class="legend" style="margin-bottom:10px;">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--up);"></span>Aumento de consumo</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--down);"></span>Redução de consumo</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--text-faint);"></span>Sem variação relevante</div>
+    </div>
+    <div class="stat-row" id="varAllStats" style="margin-bottom:16px;"></div>
+    <div id="varAllContainer" class="var-all-container"></div>
+  </div>
+
+  <!-- 6. TOP 15 CONSUMIDORES DO MÊS -->
+  <div class="card">
+    <h2><span class="idx">6</span>Top 15 consumidores do mês</h2>
+    <div class="desc">Escolha um mês para ver os 15 apartamentos com maior consumo total e sua variação percentual em relação ao mês anterior.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Mês</span>
+        <select id="top15MonthSelect"></select>
+      </div>
+    </div>
+    <div id="top15Container" class="top15-container"></div>
+  </div>
+
+  <!-- 7. ALERTAS DE DESVIO DE CONSUMO -->
+  <div class="card">
+    <h2><span class="idx">7</span>Alertas de desvio de consumo</h2>
+    <div class="desc">Escolha um mês para ver todas as unidades (e a área comum) com variação de consumo total acima de 30% (para mais ou para menos) em relação ao mês anterior.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Mês</span>
+        <select id="alertMonthSelect"></select>
+      </div>
+    </div>
+    <div class="legend" style="margin-bottom:10px;">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--up);"></span>Alta acima de 30%</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--down);"></span>Queda acima de 30%</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--newc);"></span>Novo consumo (estava zerado)</div>
+    </div>
+    <div class="stat-row" id="alertStats" style="margin-bottom:16px;"></div>
+    <div id="alertContainer" class="alert-container"></div>
+  </div>
+
+  <!-- 8. TENDÊNCIA DE CONSUMO SUSTENTADA -->
+  <div class="card">
+    <h2><span class="idx">8</span>Tendência de consumo sustentada</h2>
+    <div class="desc">Identifica apartamentos com aumento consistente de consumo ao longo dos meses — inclinação de tendência, desvio em relação à própria média histórica e estabilidade (coeficiente de variação). Consumo total (AF+AQ). Um vazamento contínuo costuma aparecer como tendência de alta sustentada, ou como um patamar elevado e estável — não necessariamente como um pico isolado de um mês para o outro.</div>
+    <div class="legend" style="margin-bottom:10px;">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--up);"></span>Tendência de alta</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#c2470f;"></span>Estável e elevado (possível vazamento contínuo)</div>
+    </div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Unidade</span>
+        <select id="trendUnitSelect"></select>
+      </div>
+    </div>
+    <div class="legend" style="margin-bottom:4px;">
+      <div class="legend-item"><span class="legend-sq" style="background:var(--total);"></span>Consumo mensal (total AF+AQ)</div>
+      <div class="legend-item"><span class="legend-sq" style="background:#9aa1a8;"></span>Linha de tendência</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--up);"></span>Ponto de desvio (acima da tendência)</div>
+    </div>
+    <div class="chart-box" id="trendChartBox">
+      <div class="svg-tooltip" id="trendTooltip"></div>
+    </div>
+    <div class="hint" id="trendUnitHint" style="margin-bottom:14px;"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Apto</th>
+          <th>Inclinação (m³/mês)</th>
+          <th>Desvio vs. histórico</th>
+          <th>Coef. variação</th>
+          <th>Classificação</th>
+        </tr>
+      </thead>
+      <tbody id="trendTableBody"></tbody>
+    </table>
+    <div class="hint">Ordenado por maior sinal de risco. Mostrando apenas apartamentos com tendência de alta ou consumo estável e elevado; os demais seguem dentro do padrão esperado de variação.</div>
+  </div>
+
+  <!-- 9. ALERTAS POR COMPONENTE (AF vs AQ) -->
+  <div class="card">
+    <h2><span class="idx">9</span>Alertas por componente — Água Fria vs Água Quente</h2>
+    <div class="desc">Escolha um mês para ver variações isoladas de AF ou AQ acima de 30%, e mudanças relevantes na proporção entre os dois — casos que podem passar despercebidos quando se olha apenas o consumo total, já que um aumento em uma linha pode ser compensado por uma redução na outra.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Mês</span>
+        <select id="componentMonthSelect"></select>
+      </div>
+      <div>
+        <span class="field-label">Ordenar por</span>
+        <select id="componentSortSelect">
+          <option value="desvio">Maior desvio primeiro</option>
+          <option value="unit">Número da unidade</option>
+        </select>
+      </div>
+    </div>
+    <div class="legend" style="margin-bottom:10px;">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--af);"></span>Alta isolada em AF</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--aq);"></span>Alta isolada em AQ</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--total);"></span>Mudança na proporção AF/AQ</div>
+    </div>
+    <div id="componentAlertContainer" class="alert-container"></div>
+  </div>
+
+  <!-- 10. CONSUMO PERSISTENTE EM UNIDADES ATÍPICAS -->
+  <div class="card">
+    <h2><span class="idx">10</span>Consumo persistente em unidades historicamente zeradas</h2>
+    <div class="desc">Unidades sem consumo (ou quase) na maior parte do período, que passaram a apresentar um consumo baixo, porém constante, nos últimos meses — padrão típico de vazamento contínuo de baixa vazão (torneira pingando, vaso sanitário vazando), que não gera picos suficientes para disparar os demais alertas.</div>
+    <div id="persistentContainer" class="alert-container"></div>
+  </div>
+
+  <!-- 11. REGISTRO DE PICOS ISOLADOS -->
+  <div class="card">
+    <h2><span class="idx">11</span>Registro de picos isolados</h2>
+    <div class="desc">Histórico de meses com consumo total muito acima do padrão da própria unidade, mesmo que já tenham se normalizado — útil para auditoria de cobranças passadas e identificação de vazamentos pontuais já resolvidos. Diferente das demais seções (focadas em risco atual), este é um registro retrospectivo permanente. "Consumo elevado recente, aguardando confirmação" indica um pico ocorrido nos meses mais recentes, sem dado do mês seguinte ainda disponível para confirmar se foi um evento pontual (ex.: visita, vazamento consertado) ou um novo padrão (ex.: início de ocupação do apartamento) — esses casos se resolvem sozinhos conforme novos meses forem carregados.</div>
+    <div class="legend" style="margin-bottom:10px;">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--up);"></span>Pico resolvido</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--newc);"></span>Consumo elevado recente, aguardando confirmação</div>
+    </div>
+    <div id="isolatedPeaksContainer" class="alert-container"></div>
+  </div>
+
+  <footer>Dados extraídos dos relatórios AGUA_2025-10 a AGUA_2026-08 · Gestway Gestão de Infraestruturas · Gráficos renderizados em SVG nativo (sem dependências externas)</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var RAW = {"months": ["Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26", "Abr/26", "Mai/26", "Jun/26", "Jul/26", "Ago/26"], "units": [{"unid": "501", "af": [11.0, 21.0, 8.0, 13.0, 9.0, 9.74, 12.31, 9.22, 10.73, 9.35, 10.18], "aq": [10.0, 3.0, 17.0, 15.0, 14.0, 16.0, 18.0, 13.0, 19.0, 16.0, 19.0]}, {"unid": "502", "af": [0.0, 7.0, 3.0, 2.0, 5.0, 8.8, 8.09, 6.75, 6.22, 7.22, 6.72], "aq": [0.0, 0.0, 0.0, 0.0, 7.0, 9.0, 12.0, 13.0, 12.0, 16.0, 12.0]}, {"unid": "503", "af": [1.0, 2.0, 12.0, 6.0, 6.0, 6.77, 20.13, 0.81, 0.94, 0.82, 0.54], "aq": [0.0, 0.0, 9.0, 4.0, 3.0, 4.0, 7.0, 1.0, 2.0, 2.0, 0.0]}, {"unid": "504", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.99, 0.0, 0.01, 0.0, 0.04, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "601", "af": [16.0, 16.0, 16.0, 17.0, 20.0, 19.72, 21.38, 19.48, 19.61, 20.8, 17.84], "aq": [16.0, 16.0, 13.0, 11.0, 16.0, 16.0, 19.0, 16.0, 20.0, 23.0, 21.0]}, {"unid": "602", "af": [2.0, 7.0, 9.0, 7.0, 7.0, 8.53, 8.81, 5.0, 8.18, 7.35, 6.86], "aq": [5.0, 5.0, 7.0, 3.0, 4.0, 4.0, 6.0, 8.51, 7.0, 6.0, 5.0]}, {"unid": "603", "af": [10.0, 7.0, 10.0, 6.0, 11.0, 9.51, 10.01, 6.9, 7.85, 3.94, 7.67], "aq": [13.0, 6.0, 3.0, 1.0, 4.0, 5.0, 4.0, 3.0, 4.0, 3.0, 5.0]}, {"unid": "604", "af": [0.0, 2.0, 1.0, 0.0, 1.0, 2.47, 1.85, 1.62, 1.6, 2.31, 3.82], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "701", "af": [13.0, 19.0, 10.0, 15.0, 12.0, 12.35, 11.28, 9.29, 10.48, 7.78, 10.83], "aq": [18.0, 11.0, 7.0, 7.0, 8.0, 9.0, 9.0, 8.0, 13.0, 8.0, 9.0]}, {"unid": "702", "af": [17.0, 13.0, 16.0, 14.0, 13.0, 18.46, 19.28, 15.47, 15.05, 16.31, 11.05], "aq": [14.0, 18.0, 11.0, 7.0, 8.0, 11.0, 11.0, 12.0, 14.0, 14.0, 9.0]}, {"unid": "703", "af": [7.0, 10.0, 11.0, 9.0, 9.0, 6.9, 11.0, 10.03, 7.45, 10.0, 8.49], "aq": [5.0, 14.0, 11.0, 9.0, 9.0, 6.0, 12.0, 10.0, 13.0, 15.0, 14.0]}, {"unid": "704", "af": [0.0, 6.0, 11.0, 15.0, 13.0, 13.73, 13.64, 12.82, 14.95, 13.15, 12.07], "aq": [1.0, 2.0, 12.0, 12.0, 13.0, 14.0, 15.0, 13.0, 18.0, 16.0, 12.0]}, {"unid": "801", "af": [0.0, 2.0, 4.0, 2.0, 2.0, 1.14, 1.57, 1.12, 1.1, 1.03, 1.74], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "802", "af": [1.0, 10.0, 5.0, 2.0, 9.0, 4.83, 6.01, 7.68, 3.34, 3.96, 2.88], "aq": [3.0, 12.0, 7.0, 2.0, 4.0, 3.0, 3.0, 3.0, 3.0, 4.0, 3.0]}, {"unid": "803", "af": [9.0, 13.0, 14.0, 12.0, 16.0, 13.72, 17.22, 17.31, 17.91, 18.38, 13.43], "aq": [13.0, 13.0, 11.0, 10.0, 12.0, 10.0, 12.0, 11.0, 12.0, 15.0, 9.0]}, {"unid": "804", "af": [0.0, 1.0, 1.0, 2.0, 1.0, 0.97, 0.21, 0.1, 0.47, 0.43, 2.33], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "901", "af": [0.0, 2.0, 37.0, 0.0, 0.0, 1.16, 0.71, 0.91, 1.08, 1.94, 7.97], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0]}, {"unid": "902", "af": [10.0, 13.0, 12.0, 6.0, 12.0, 8.9, 9.24, 10.85, 10.53, 12.23, 13.26], "aq": [11.0, 9.0, 7.0, 4.0, 9.0, 7.0, 7.0, 10.0, 11.0, 9.0, 8.0]}, {"unid": "903", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.41, 0.02, 0.04, 0.01, 0.0, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "904", "af": [13.0, 10.0, 9.0, 6.0, 9.0, 10.23, 9.29, 9.33, 10.21, 8.04, 9.33], "aq": [11.0, 15.0, 14.0, 8.0, 13.0, 13.0, 12.0, 11.0, 15.0, 11.0, 13.0]}, {"unid": "1001", "af": [6.0, 19.0, 10.0, 12.0, 9.0, 10.56, 12.43, 8.33, 6.06, 8.2, 7.28], "aq": [9.0, 1.0, 8.0, 9.0, 8.0, 8.0, 9.0, 7.0, 6.0, 9.0, 7.0]}, {"unid": "1002", "af": [11.0, 9.0, 9.0, 11.0, 8.0, 11.88, 8.71, 10.41, 10.0, 12.68, 10.24], "aq": [19.0, 17.0, 8.0, 8.0, 9.0, 9.0, 8.0, 10.43, 10.34, 8.0, 10.0]}, {"unid": "1003", "af": [13.0, 8.0, 6.0, 6.0, 8.0, 5.56, 6.7, 4.61, 5.71, 5.81, 5.58], "aq": [15.0, 17.0, 12.0, 15.0, 15.0, 12.0, 13.0, 12.0, 15.0, 16.0, 12.0]}, {"unid": "1004", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1101", "af": [11.0, 9.0, 9.0, 12.0, 10.0, 11.09, 13.34, 18.0, 18.0, 11.34, 8.43], "aq": [6.0, 18.0, 15.0, 14.0, 16.0, 16.0, 18.0, 11.68, 10.24, 21.0, 13.0]}, {"unid": "1102", "af": [0.0, 0.0, 0.0, 0.0, 1.0, 0.07, 0.0, 3.05, 3.46, 1.23, 2.66], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1103", "af": [3.0, 5.0, 5.0, 3.0, 6.0, 5.86, 3.43, 3.0, 4.0, 2.7, 6.05], "aq": [1.0, 4.0, 3.0, 2.0, 4.0, 2.0, 2.0, 4.75, 5.0, 1.0, 4.0]}, {"unid": "1104", "af": [11.0, 6.0, 6.0, 6.0, 9.0, 6.58, 8.36, 7.34, 10.63, 7.83, 10.62], "aq": [16.0, 6.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 13.0, 9.0, 13.0]}, {"unid": "1201", "af": [16.0, 12.0, 13.0, 9.0, 12.0, 9.41, 11.72, 8.92, 8.2, 1.83, 5.95], "aq": [13.0, 12.0, 14.0, 8.0, 13.0, 9.0, 14.0, 11.0, 14.0, 11.0, 13.0]}, {"unid": "1202", "af": [2.0, 7.0, 6.0, 7.0, 6.0, 5.57, 8.48, 3.0, 4.0, 5.22, 6.12], "aq": [4.0, 4.0, 4.0, 2.0, 3.0, 3.0, 3.0, 5.66, 5.82, 3.0, 3.0]}, {"unid": "1203", "af": [0.0, 0.0, 0.0, 1.0, 0.0, 0.11, 0.0, 0.01, 0.02, 0.01, 1.5], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1204", "af": [16.0, 10.0, 10.0, 10.0, 9.0, 10.47, 10.5, 9.83, 9.84, 9.86, 9.98], "aq": [16.0, 11.0, 9.0, 11.0, 9.0, 10.0, 11.0, 9.0, 12.0, 12.0, 9.0]}, {"unid": "1301", "af": [17.0, 19.0, 16.0, 14.0, 17.0, 20.77, 21.69, 9.0, 14.0, 15.1, 16.52], "aq": [13.0, 13.0, 11.0, 9.0, 9.0, 13.0, 13.0, 13.95, 17.59, 11.0, 10.0]}, {"unid": "1302", "af": [12.0, 15.0, 10.0, 9.0, 5.0, 10.42, 9.09, 6.0, 9.0, 9.89, 8.47], "aq": [16.0, 4.0, 9.0, 5.0, 3.0, 8.0, 7.0, 7.94, 8.42, 10.0, 8.0]}, {"unid": "1303", "af": [3.0, 3.0, 7.0, 8.0, 7.0, 5.35, 7.22, 5.62, 4.78, 5.83, 6.44], "aq": [4.0, 2.0, 4.0, 5.0, 4.0, 3.0, 5.0, 4.0, 4.0, 5.0, 5.0]}, {"unid": "1304", "af": [0.0, 2.0, 4.0, 2.0, 3.0, 5.68, 3.57, 10.08, 10.85, 11.09, 10.1], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 9.0, 13.0, 11.0]}, {"unid": "1401", "af": [3.0, 7.0, 7.0, 4.0, 8.0, 5.77, 6.81, 4.0, 6.29, 5.99, 6.4], "aq": [3.0, 6.0, 5.0, 2.0, 6.0, 3.0, 5.0, 5.71, 6.0, 5.0, 5.0]}, {"unid": "1402", "af": [5.0, 14.0, 15.0, 18.0, 15.0, 15.88, 17.31, 13.36, 12.45, 13.67, 13.63], "aq": [9.0, 6.0, 6.0, 7.0, 7.0, 6.0, 7.0, 6.0, 9.0, 8.0, 8.0]}, {"unid": "1403", "af": [3.0, 4.0, 6.0, 9.0, 6.0, 8.8, 6.85, 5.35, 3.68, 5.71, 4.82], "aq": [3.0, 2.0, 4.0, 4.0, 3.0, 3.0, 4.0, 3.0, 2.0, 4.0, 3.0]}, {"unid": "1404", "af": [3.0, 6.0, 6.0, 6.0, 5.0, 5.36, 6.29, 5.24, 4.76, 4.64, 5.24], "aq": [3.0, 3.0, 4.0, 1.0, 3.0, 2.0, 3.0, 2.0, 3.0, 3.0, 4.0]}, {"unid": "1501", "af": [2.0, 9.0, 8.0, 10.0, 9.0, 9.73, 9.43, 7.68, 9.02, 8.96, 8.87], "aq": [5.0, 2.0, 2.0, 2.0, 2.0, 3.0, 2.0, 1.0, 2.0, 2.0, 2.0]}, {"unid": "1502", "af": [7.0, 13.0, 10.0, 15.0, 10.0, 13.08, 10.79, 7.0, 8.0, 9.89, 7.65], "aq": [7.0, 10.0, 9.0, 10.0, 9.0, 8.0, 8.0, 9.25, 7.75, 6.0, 5.0]}, {"unid": "1503", "af": [0.0, 2.0, 1.0, 1.0, 0.0, 1.81, 2.66, 0.0, 0.0, 6.75, 6.77], "aq": [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.18, 4.27, 2.0, 2.0]}, {"unid": "1504", "af": [11.0, 14.0, 16.0, 11.0, 13.0, 13.95, 14.95, 14.32, 13.08, 15.68, 13.96], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1601", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.63, 0.0, 0.0, 0.02, 0.03, 0.02], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1602", "af": [3.0, 5.0, 17.0, 15.0, 18.0, 19.77, 21.84, 15.31, 15.16, 17.19, 13.93], "aq": [0.0, 0.0, 14.0, 13.0, 13.0, 18.0, 18.0, 14.0, 17.0, 22.0, 22.0]}, {"unid": "1603", "af": [8.0, 8.0, 8.0, 9.0, 7.0, 8.09, 10.44, 7.97, 8.67, 8.05, 9.61], "aq": [10.0, 17.0, 9.0, 9.0, 10.0, 11.0, 12.0, 10.0, 14.0, 12.0, 10.0]}, {"unid": "1604", "af": [5.0, 8.0, 7.0, 7.0, 7.0, 8.59, 8.36, 6.81, 7.36, 7.67, 6.23], "aq": [4.0, 7.0, 5.0, 3.0, 4.0, 4.0, 5.0, 4.0, 5.0, 6.0, 5.0]}, {"unid": "1701", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.93, 0.0, 0.0, 0.0, 0.05, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1702", "af": [11.0, 21.0, 21.0, 12.0, 20.0, 20.39, 22.42, 17.49, 20.85, 18.56, 15.02], "aq": [13.0, 16.0, 15.0, 8.0, 14.0, 16.0, 16.0, 12.0, 18.0, 16.0, 12.0]}, {"unid": "1703", "af": [4.0, 7.0, 6.0, 8.0, 3.0, 5.56, 9.89, 6.37, 7.48, 7.0, 6.15], "aq": [4.0, 8.0, 5.0, 7.0, 4.0, 4.0, 8.0, 6.0, 8.0, 7.0, 9.0]}, {"unid": "1704", "af": [1.0, 8.0, 7.0, 14.0, 9.0, 6.97, 9.61, 9.26, 7.76, 8.37, 7.36], "aq": [4.0, 3.0, 4.0, 0.0, 2.0, 3.0, 2.0, 4.0, 8.0, 11.0, 14.0]}, {"unid": "1801", "af": [14.0, 14.0, 14.0, 15.0, 13.0, 13.36, 13.83, 12.35, 13.07, 12.63, 12.72], "aq": [17.0, 10.0, 8.0, 8.0, 9.0, 8.0, 10.0, 8.0, 10.0, 9.0, 7.0]}, {"unid": "1802", "af": [18.0, 13.0, 14.0, 6.0, 12.0, 14.28, 15.92, 13.91, 13.17, 10.78, 8.15], "aq": [21.0, 16.0, 16.0, 8.0, 13.0, 15.0, 15.0, 16.0, 17.0, 15.0, 8.0]}, {"unid": "1803", "af": [17.0, 5.0, 10.0, 18.0, 19.0, 10.67, 14.17, 7.95, 5.92, 5.25, 6.98], "aq": [17.0, 6.0, 13.0, 14.0, 13.0, 12.0, 13.0, 9.0, 12.0, 10.0, 12.0]}, {"unid": "1804", "af": [18.0, 6.0, 5.0, 5.0, 8.0, 7.18, 8.27, 6.87, 6.72, 7.35, 6.18], "aq": [13.0, 3.0, 4.0, 2.0, 4.0, 3.0, 3.0, 3.0, 3.0, 4.0, 3.0]}, {"unid": "1901", "af": [22.0, 34.0, 20.0, 12.0, 27.0, 23.14, 26.76, 22.29, 28.29, 25.74, 22.94], "aq": [24.0, 19.0, 16.0, 10.0, 20.0, 15.0, 16.0, 15.0, 18.0, 18.0, 18.0]}, {"unid": "1902", "af": [0.0, 0.0, 3.0, 2.0, 3.0, 4.36, 2.88, 3.35, 13.32, 18.82, 17.76], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 10.0, 10.0]}, {"unid": "1903", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 2.75, 1.4, 1.4, 0.14, 1.61, 1.3], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1904", "af": [0.0, 1.0, 1.0, 2.0, 0.0, 0.5, 1.55, 0.29, 0.16, 0.13, 0.0], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 72.0, 0.0, 0.0, 0.0]}, {"unid": "2001", "af": [13.0, 12.0, 11.0, 9.0, 8.0, 11.37, 12.31, 11.01, 11.77, 7.24, 12.39], "aq": [21.0, 11.0, 9.0, 7.0, 7.0, 10.0, 10.0, 8.0, 9.0, 5.0, 8.0]}, {"unid": "2002", "af": [13.0, 6.0, 8.0, 7.0, 7.0, 6.74, 7.1, 5.98, 6.06, 6.44, 5.76], "aq": [19.0, 3.0, 3.0, 2.0, 4.0, 3.0, 3.0, 3.0, 3.0, 5.0, 4.0]}, {"unid": "2003", "af": [1.0, 13.0, 10.0, 8.0, 13.0, 8.91, 11.91, 8.1, 9.88, 10.25, 8.83], "aq": [10.0, 6.0, 5.0, 5.0, 6.0, 5.0, 6.0, 4.0, 7.0, 7.0, 7.0]}, {"unid": "2004", "af": [5.0, 19.0, 7.0, 10.0, 8.0, 8.22, 8.26, 7.08, 8.22, 8.03, 9.32], "aq": [8.0, 0.0, 14.0, 12.0, 12.0, 14.0, 13.0, 13.0, 17.0, 19.0, 17.0]}, {"unid": "2101", "af": [0.0, 11.0, 10.0, 12.0, 12.0, 10.63, 7.61, 7.55, 6.53, 8.43, 6.22], "aq": [3.0, 0.0, 8.0, 15.0, 11.0, 7.0, 8.0, 12.0, 12.0, 15.0, 14.0]}, {"unid": "2102", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.87, 0.07, 0.04, 0.0, 0.0, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "2103", "af": [14.0, 7.0, 14.0, 9.0, 5.0, 10.98, 9.33, 8.65, 7.59, 7.3, 7.52], "aq": [10.0, 6.0, 7.0, 6.0, 4.0, 6.0, 7.0, 7.0, 7.0, 7.0, 10.0]}, {"unid": "2104", "af": [13.0, 6.0, 6.0, 5.0, 6.0, 6.68, 6.13, 5.5, 6.62, 5.48, 4.38], "aq": [2.0, 4.0, 5.0, 3.0, 5.0, 4.0, 4.0, 4.0, 6.0, 5.0, 4.0]}, {"unid": "2201", "af": [20.0, 17.0, 12.0, 11.0, 13.0, 15.12, 14.42, 9.68, 11.78, 14.3, 12.79], "aq": [12.0, 10.0, 7.0, 6.0, 11.0, 9.0, 12.0, 7.0, 10.0, 12.0, 10.0]}, {"unid": "2202", "af": [16.0, 8.0, 7.0, 2.0, 6.0, 6.52, 8.36, 7.5, 7.62, 7.3, 5.87], "aq": [15.0, 8.0, 8.0, 3.0, 7.0, 6.0, 11.0, 11.0, 16.78, 12.0, 11.0]}, {"unid": "2203", "af": [16.0, 11.0, 9.0, 13.0, 11.0, 11.69, 11.9, 10.43, 10.27, 12.37, 12.75], "aq": [17.0, 20.0, 17.0, 15.0, 18.0, 17.0, 18.0, 14.0, 20.0, 23.0, 22.0]}, {"unid": "2204", "af": [5.0, 11.0, 12.0, 13.0, 12.0, 14.49, 16.84, 13.08, 13.87, 14.32, 10.97], "aq": [13.0, 9.0, 9.0, 8.0, 7.0, 8.0, 11.0, 8.0, 9.0, 10.0, 7.0]}, {"unid": "2301", "af": [0.0, 12.0, 9.0, 12.0, 7.0, 7.17, 6.8, 5.11, 5.4, 5.81, 6.25], "aq": [3.0, 1.0, 8.0, 10.0, 10.0, 8.0, 10.0, 8.0, 9.0, 12.0, 15.0]}, {"unid": "2302", "af": [8.0, 10.0, 9.0, 10.0, 11.0, 8.34, 9.55, 8.8, 8.48, 8.71, 7.76], "aq": [9.0, 4.0, 4.0, 3.0, 4.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0]}, {"unid": "2303", "af": [0.0, 15.0, 21.0, 11.0, 20.0, 19.78, 22.85, 35.01, 15.03, 12.11, 12.45], "aq": [4.0, 15.0, 15.0, 7.0, 15.0, 12.0, 13.0, 14.0, 12.0, 11.0, 11.0]}, {"unid": "2304", "af": [10.0, 11.0, 7.0, 13.0, 14.0, 7.28, 27.85, 5.87, 11.16, 12.21, 11.81], "aq": [21.0, 9.0, 6.0, 9.0, 8.0, 4.0, 8.0, 4.0, 10.0, 10.0, 9.0]}, {"unid": "2401", "af": [0.0, 0.0, 1.0, 0.0, 0.0, 1.08, 0.14, 0.15, 4.28, 2.16, 1.53], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]}, {"unid": "2402", "af": [0.0, 0.0, 0.0, 0.0, 1.0, 2.95, 4.21, 3.64, 3.58, 3.3, 5.51], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 3.0]}, {"unid": "2403", "af": [17.0, 13.0, 11.0, 13.0, 16.0, 15.06, 16.26, 8.69, 10.8, 12.87, 11.46], "aq": [8.0, 5.0, 4.0, 5.0, 7.0, 6.0, 6.0, 4.0, 6.0, 7.0, 6.0]}, {"unid": "2404", "af": [9.0, 6.0, 6.0, 5.0, 8.0, 7.35, 9.24, 5.61, 5.13, 5.65, 3.69], "aq": [18.0, 13.0, 16.0, 10.0, 15.0, 14.0, 16.0, 13.0, 14.0, 16.0, 10.0]}, {"unid": "2501", "af": [21.0, 8.0, 7.0, 8.0, 7.0, 5.17, 7.09, 7.23, 6.07, 8.4, 11.14], "aq": [14.0, 21.0, 18.0, 15.0, 20.0, 13.0, 21.0, 21.0, 23.0, 18.0, 21.0]}, {"unid": "2502", "af": [1.0, 1.0, 2.0, 2.0, 2.0, 2.03, 2.46, 1.25, 1.8, 1.44, 0.69], "aq": [1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]}, {"unid": "2503", "af": [11.0, 11.0, 11.0, 14.0, 11.0, 12.17, 11.54, 10.87, 5.03, 12.19, 11.71], "aq": [10.0, 6.0, 5.0, 5.0, 5.0, 6.0, 5.0, 4.0, 2.0, 5.0, 5.0]}, {"unid": "2504", "af": [13.0, 9.0, 7.0, 9.0, 8.0, 6.42, 7.89, 5.95, 6.43, 7.33, 7.91], "aq": [14.0, 7.0, 7.0, 6.0, 6.0, 5.0, 6.0, 5.0, 8.0, 12.0, 10.0]}, {"unid": "2601", "af": [0.0, 0.0, 1.0, 0.0, 0.0, 0.26, 0.05, 0.03, 0.08, 0.03, 0.02], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "2602", "af": [0.0, 0.0, 0.0, 7.0, 0.0, 3.48, 25.49, 32.09, 35.9, 27.5, 34.03], "aq": [10.0, 0.0, 0.0, 5.0, 0.0, 3.0, 21.0, 21.0, 29.0, 32.0, 34.0]}, {"unid": "2603", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.81, 0.17, 0.0, 0.0, 0.0, 0.0], "aq": [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "2604", "af": [15.0, 6.0, 8.0, 10.0, 9.0, 7.39, 8.07, 7.66, 8.09, 6.8, 7.74], "aq": [19.0, 4.0, 6.0, 4.0, 5.0, 5.0, 6.0, 5.0, 7.0, 8.0, 8.0]}, {"unid": "2701", "af": [14.0, 29.0, 31.0, 17.0, 34.0, 23.95, 31.01, 20.8, 32.58, 21.87, 25.61], "aq": [31.0, 15.0, 14.0, 6.0, 16.0, 13.0, 16.0, 9.0, 20.0, 15.0, 14.0]}, {"unid": "2702", "af": [17.0, 10.0, 12.0, 14.0, 11.0, 15.64, 14.47, 8.01, 12.04, 9.8, 12.61], "aq": [12.0, 8.0, 8.0, 9.0, 7.0, 10.0, 11.0, 6.0, 11.0, 9.0, 6.0]}, {"unid": "2703", "af": [17.0, 9.0, 9.0, 7.0, 6.0, 7.89, 12.28, 7.77, 8.69, 6.87, 6.22], "aq": [10.0, 7.0, 7.0, 5.0, 4.0, 6.0, 7.0, 6.0, 8.0, 8.0, 6.0]}, {"unid": "2704", "af": [0.0, 6.0, 6.0, 4.0, 3.0, 2.26, 2.87, 1.51, 1.8, 4.31, 8.99], "aq": [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}], "areaComum": [200.8, 120.0, 185.6, 161.2, 134.8, 581.09, 127.95, 220.18, 78.53, 117.16, 281.63]};
+
+var MONTHS = RAW.months;
+var AC_ID = 'ÁREA COMUM';
+
+// Monta lista de unidades: 92 apartamentos + Área Comum (sem abertura AF/AQ)
+var UNITS = RAW.units.map(function(u){
+  return {unid:u.unid, af:u.af, aq:u.aq, isAC:false};
+});
+UNITS.push({unid: AC_ID, af:null, aq:null, total: RAW.areaComum, isAC:true});
+
+function totalArr(u){
+  if(u.total) return u.total;
+  return u.af.map(function(v,i){ return round2(v + u.aq[i]); });
+}
+function round2(n){ return Math.round(n*100)/100; }
+
+var flameColors = ['#2e9bf0','#ff8a3d','#14b881','#ffd166','#c25ce3'];
+
+function fmt(n){
+  return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function svgEl(tag, attrs){
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(var k in attrs){ el.setAttribute(k, attrs[k]); }
+  return el;
+}
+
+/* ================= KPIs ================= */
+function buildKPIs(){
+  var totals = UNITS.map(function(u){ return totalArr(u).reduce(function(a,b){return a+b;},0); });
+  var grandTotal = totals.reduce(function(a,b){return a+b;},0);
+  var monthTotals = MONTHS.map(function(m,i){ return UNITS.reduce(function(s,u){return s+totalArr(u)[i];},0); });
+  var lastMonth = monthTotals[monthTotals.length-1];
+  var prevMonth = monthTotals[monthTotals.length-2];
+  var momPct = ((lastMonth-prevMonth)/prevMonth*100);
+  var aptosOnly = UNITS.filter(function(u){ return !u.isAC; });
+  var active = aptosOnly.filter(function(u){ return totalArr(u).reduce(function(a,b){return a+b;},0) > 0.05; }).length;
+  var avgPerUnit = aptosOnly.reduce(function(s,u){ return s+totalArr(u).reduce(function(a,b){return a+b;},0); },0) / aptosOnly.length;
+
+  var kpis = [
+    {label:'Total consolidado (aptos + área comum)', value: fmt(grandTotal), suffix:' m³'},
+    {label:'Último mês ('+MONTHS[MONTHS.length-1]+')', value: fmt(lastMonth), suffix:' m³', sub:(momPct>=0?'+':'')+momPct.toFixed(1)+'% vs mês anterior', trend: momPct>=0?'up':'down'},
+    {label:'Unidades ativas', value: active, suffix:' / '+aptosOnly.length},
+    {label:'Média por apartamento (total)', value: fmt(avgPerUnit), suffix:' m³'}
+  ];
+  var strip = document.getElementById('kpiStrip');
+  strip.innerHTML = kpis.map(function(k){
+    return '<div class="kpi">'+
+      '<div class="label">'+k.label+'</div>'+
+      '<div class="value">'+k.value+'<small>'+(k.suffix||'')+'</small></div>'+
+      (k.sub ? '<div style="margin-top:6px;font-size:12px;" class="'+(k.trend==='up'?'var-up':'var-down')+'">'+k.sub+'</div>' : '') +
+    '</div>';
+  }).join('');
+}
+buildKPIs();
+
+/* ================= Populate selects ================= */
+var singleSel = document.getElementById('singleUnitSelect');
+var demoSel = document.getElementById('demoUnitSelect');
+UNITS.forEach(function(u){
+  var label = u.isAC ? 'Área Comum' : 'Apto '+u.unid;
+  var o1 = document.createElement('option'); o1.value=u.unid; o1.textContent=label;
+  singleSel.appendChild(o1);
+  var o2 = document.createElement('option'); o2.value=u.unid; o2.textContent=label;
+  demoSel.appendChild(o2);
+});
+
+function findUnit(unid){
+  return UNITS.filter(function(x){return x.unid===unid;})[0];
+}
+
+/* ================= Generic SVG chart helpers ================= */
+function getBoxSize(box){
+  var rect = box.getBoundingClientRect();
+  return {w: Math.max(rect.width, 300), h: Math.max(rect.height, 260)};
+}
+
+/* -------- LINE CHART (consumo total do condomínio) -------- */
+function computeMonthTotals(){
+  return MONTHS.map(function(m, i){
+    var total = 0, active = 0, aptosSum = 0, acVal = 0;
+    UNITS.forEach(function(u){
+      var v = totalArr(u)[i];
+      total += v;
+      if(u.isAC){
+        acVal = v;
+      } else {
+        aptosSum += v;
+        if(v > 0.05) active++;
+      }
+    });
+    return {total: total, active: active, avg: active>0 ? total/active : 0, aptosSum: aptosSum, acVal: acVal};
+  });
+}
+
+function renderTotalChart(){
+  var monthData = computeMonthTotals();
+  var box = document.getElementById('totalChartBox');
+  var tooltip = document.getElementById('totalTooltip');
+  var old = box.querySelector('svg');
+  if(old) old.remove();
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:24, bottom:34, left:52};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var totals = monthData.map(function(d){ return d.total; });
+  var maxVal = Math.max.apply(null, totals.concat([1])) * 1.15;
+  var n = MONTHS.length;
+  var stepX = innerW/(n-1 || 1);
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gv = (maxVal*g/gridSteps);
+    var txt = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label', 'text-anchor':'end'});
+    txt.textContent = gv.toFixed(0);
+    svg.appendChild(txt);
+  }
+  for(var i=0;i<n;i++){
+    var lx = margin.left + stepX*i;
+    var lab = svgEl('text', {x:lx, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    lab.textContent = MONTHS[i];
+    svg.appendChild(lab);
+  }
+
+  function xy(i, val){
+    var x = margin.left + stepX*i;
+    var y = margin.top + innerH - (maxVal>0 ? (val/maxVal)*innerH : 0);
+    return [x,y];
+  }
+
+  var pts = totals.map(function(v,i){ return xy(i,v); });
+  var d = pts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+
+  var areaD = d + ' L'+pts[pts.length-1][0].toFixed(1)+','+(margin.top+innerH).toFixed(1)+
+              ' L'+pts[0][0].toFixed(1)+','+(margin.top+innerH).toFixed(1)+' Z';
+  svg.appendChild(svgEl('path', {d:areaD, fill:'rgba(46,155,240,0.08)', stroke:'none'}));
+
+  svg.appendChild(svgEl('path', {d:d, fill:'none', stroke:'#2e9bf0', 'stroke-width':2.75, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+
+  pts.forEach(function(p, i){
+    var dot = svgEl('circle', {cx:p[0], cy:p[1], r:5, fill:'#2e9bf0', stroke:'#ffffff', 'stroke-width':2, style:'cursor:pointer;'});
+    dot.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · Total condomínio</div><b>'+fmt(monthData[i].total)+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    dot.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(dot);
+
+    var vlabel = svgEl('text', {x:p[0], y:p[1]-12, class:'val-label'});
+    vlabel.textContent = fmt(monthData[i].total);
+    svg.appendChild(vlabel);
+  });
+
+  // -------- linha 2: soma dos apartamentos --------
+  var aptosVals = monthData.map(function(d){ return d.aptosSum; });
+  var aptosPts = aptosVals.map(function(v,i){ return xy(i,v); });
+  var aptosD = aptosPts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:aptosD, fill:'none', stroke:'#7c5cff', 'stroke-width':2.25, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+  aptosPts.forEach(function(p, i){
+    var dot = svgEl('circle', {cx:p[0], cy:p[1], r:4, fill:'#7c5cff', stroke:'#ffffff', 'stroke-width':1.5, style:'cursor:pointer;'});
+    dot.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · Soma dos apartamentos</div><b>'+fmt(monthData[i].aptosSum)+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    dot.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(dot);
+  });
+
+  // -------- linha 3: área comum --------
+  var acVals = monthData.map(function(d){ return d.acVal; });
+  var acPts = acVals.map(function(v,i){ return xy(i,v); });
+  var acD = acPts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:acD, fill:'none', stroke:'#14b881', 'stroke-width':2.25, 'stroke-linejoin':'round', 'stroke-linecap':'round', 'stroke-dasharray':'5,4'}));
+  acPts.forEach(function(p, i){
+    var dot = svgEl('circle', {cx:p[0], cy:p[1], r:4, fill:'#14b881', stroke:'#ffffff', 'stroke-width':1.5, style:'cursor:pointer;'});
+    dot.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · Área Comum</div><b>'+fmt(monthData[i].acVal)+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    dot.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(dot);
+  });
+
+  box.appendChild(svg);
+
+  var statsGrid = document.getElementById('totalMonthStats');
+  statsGrid.innerHTML = monthData.map(function(d, i){
+    return '<div class="month-stat-cell">'+
+      '<div class="m-label">'+MONTHS[i]+'</div>'+
+      '<div class="m-row">Ativas: <b>'+d.active+'</b> / '+(UNITS.length-1)+'</div>'+
+      '<div class="m-row">Média/apto: <b>'+fmt(d.avg)+' m³</b></div>'+
+    '</div>';
+  }).join('');
+}
+renderTotalChart();
+
+/* -------- GROUPED BAR CHART (single apartment: AF / AQ / Total) -------- */
+var GLOBAL_MAX_APTO = (function(){
+  var vals = [1];
+  UNITS.forEach(function(u){
+    if(u.isAC) return;
+    vals = vals.concat(u.af, u.aq, totalArr(u));
+  });
+  return Math.max.apply(null, vals) * 1.15;
+})();
+var GLOBAL_MAX_AC = (function(){
+  var u = findUnit(AC_ID);
+  return Math.max.apply(null, totalArr(u).concat([1])) * 1.15;
+})();
+
+function renderSingle(unid){
+  var u = findUnit(unid);
+  var box = document.getElementById('singleChartBox');
+  var tooltip = document.getElementById('singleTooltip');
+  var old = box.querySelector('svg');
+  if(old) old.remove();
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:16, bottom:34, left:48};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var maxVal = u.isAC ? GLOBAL_MAX_AC : GLOBAL_MAX_APTO;
+  var n = MONTHS.length;
+  var bandW = innerW / n;
+
+  var hint = document.getElementById('singleHint');
+  hint.textContent = u.isAC
+    ? 'A área comum não possui abertura entre água fria e água quente nos relatórios — exibindo apenas o consumo total.'
+    : '';
+
+  var barsPerGroup = u.isAC ? 1 : 3;
+  var barW = Math.min((bandW*0.72)/barsPerGroup, 22);
+  var groupW = barW*barsPerGroup + (barsPerGroup-1)*2;
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gv = (maxVal*g/gridSteps);
+    var txt = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label', 'text-anchor':'end'});
+    txt.textContent = gv.toFixed(0);
+    svg.appendChild(txt);
+  }
+
+  var totals = totalArr(u);
+
+  function makeBar(x, val, color, tipLabel, i){
+    var barH = maxVal>0 ? (val/maxVal)*innerH : 0;
+    var y = margin.top + innerH - barH;
+    var rect = svgEl('rect', {
+      x:x, y:y, width:barW, height:Math.max(barH,1.5), rx:4, ry:4,
+      class:'bar-rect', fill: color
+    });
+    rect.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · '+tipLabel+'</div><b>'+fmt(val)+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    rect.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(rect);
+    return y;
+  }
+
+  for(var i=0;i<n;i++){
+    var groupX = margin.left + bandW*i + (bandW-groupW)/2;
+    var minY = margin.top+innerH;
+
+    if(u.isAC){
+      var yT = makeBar(groupX, totals[i], '#14b881', 'Área Comum · Total', i);
+      minY = Math.min(minY, yT);
+    } else {
+      var yAF = makeBar(groupX, u.af[i], '#2e9bf0', 'Água Fria (AF)', i);
+      var yAQ = makeBar(groupX+barW+2, u.aq[i], '#ff6b3d', 'Água Quente (AQ)', i);
+      var yTT = makeBar(groupX+(barW+2)*2, totals[i], '#7c5cff', 'Total (AF+AQ)', i);
+      minY = Math.min(yAF, yAQ, yTT);
+    }
+
+    var label = svgEl('text', {x:margin.left+bandW*i+bandW/2, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    label.textContent = MONTHS[i];
+    svg.appendChild(label);
+
+    var vlabel = svgEl('text', {x:groupX+groupW/2, y:minY-8, class:'val-label'});
+    vlabel.textContent = fmt(totals[i]);
+    svg.appendChild(vlabel);
+  }
+
+  box.appendChild(svg);
+}
+renderSingle(UNITS[0].unid);
+singleSel.addEventListener('change', function(e){ renderSingle(e.target.value); });
+window.addEventListener('resize', debounce(function(){
+  renderTotalChart();
+  renderSingle(singleSel.value);
+  renderMulti();
+}, 150));
+
+function debounce(fn, ms){
+  var t;
+  return function(){
+    var args = arguments;
+    clearTimeout(t);
+    t = setTimeout(function(){ fn.apply(null, args); }, ms);
+  };
+}
+
+/* -------- LINE CHART (multi comparison — consumo total) -------- */
+var selectedUnits = [];
+
+function defaultTop5(){
+  var withTotals = UNITS.filter(function(u){ return !u.isAC; }).map(function(u){ return {unid:u.unid, total:totalArr(u).reduce(function(a,b){return a+b;},0)}; });
+  withTotals.sort(function(a,b){ return b.total-a.total; });
+  return withTotals.slice(0,5).map(function(x){ return x.unid; });
+}
+
+function renderMulti(){
+  var list = selectedUnits.length ? selectedUnits : defaultTop5();
+  var box = document.getElementById('multiChartBox');
+  var tooltip = document.getElementById('multiTooltip');
+  var old = box.querySelector('svg');
+  if(old) old.remove();
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:24, bottom:34, left:48};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var series = list.map(function(unid, idx){
+    var u = findUnit(unid);
+    return {unid:unid, isAC:u.isAC, data:totalArr(u), color: u.isAC ? '#14b881' : flameColors[idx%flameColors.length]};
+  });
+
+  var allVals = series.reduce(function(acc,s){ return acc.concat(s.data); }, [0]);
+  var maxVal = Math.max.apply(null, allVals) * 1.15;
+  var n = MONTHS.length;
+  var stepX = innerW/(n-1 || 1);
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gv = (maxVal*g/gridSteps);
+    var txt = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label', 'text-anchor':'end'});
+    txt.textContent = gv.toFixed(0);
+    svg.appendChild(txt);
+  }
+  for(var i=0;i<n;i++){
+    var lx = margin.left + stepX*i;
+    var lab = svgEl('text', {x:lx, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    lab.textContent = MONTHS[i];
+    svg.appendChild(lab);
+  }
+
+  function xy(i, val){
+    var x = margin.left + stepX*i;
+    var y = margin.top + innerH - (maxVal>0 ? (val/maxVal)*innerH : 0);
+    return [x,y];
+  }
+
+  series.forEach(function(s){
+    var pts = s.data.map(function(v,i){ return xy(i,v); });
+    var d = pts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+    svg.appendChild(svgEl('path', {d:d, fill:'none', stroke:s.color, 'stroke-width':2.5, 'stroke-linejoin':'round', 'stroke-linecap':'round', 'stroke-dasharray': s.isAC ? '5,4' : 'none'}));
+
+    pts.forEach(function(p, i){
+      var dot = svgEl('circle', {cx:p[0], cy:p[1], r:4.5, fill:s.color, stroke:'#ffffff', 'stroke-width':1.5, style:'cursor:pointer;'});
+      dot.addEventListener('mousemove', function(e){
+        var bRect = box.getBoundingClientRect();
+        var lbl = s.isAC ? 'Área Comum' : ('Apto '+s.unid);
+        tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · '+lbl+'</div><b>'+fmt(s.data[i])+' m³</b>';
+        tooltip.style.left = (e.clientX - bRect.left) + 'px';
+        tooltip.style.top = (e.clientY - bRect.top) + 'px';
+        tooltip.classList.add('show');
+      });
+      dot.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+      svg.appendChild(dot);
+    });
+  });
+
+  box.appendChild(svg);
+
+  var legend = document.getElementById('multiLegend');
+  legend.innerHTML = series.map(function(s){
+    var lbl = s.isAC ? 'Área Comum' : ('Apto '+s.unid);
+    return '<div class="legend-item"><span class="legend-dot" style="background:'+s.color+'"></span>'+lbl+'</div>';
+  }).join('');
+
+  document.getElementById('multiHint').textContent = selectedUnits.length
+    ? ('Mostrando '+list.length+' unidade'+(list.length>1?'s':'')+' selecionada'+(list.length>1?'s':'')+'. Consumo total (AF+AQ).')
+    : 'Nenhuma unidade selecionada — mostrando as 5 de maior consumo total por padrão.';
+}
+
+function renderChips(){
+  var wrap = document.getElementById('selectedChips');
+  wrap.innerHTML = selectedUnits.map(function(unid){
+    var u = findUnit(unid);
+    var lbl = u.isAC ? 'Área Comum' : ('Apto '+unid);
+    return '<div class="chip'+(u.isAC?' chip-ac':'')+'">'+lbl+' <button data-unid="'+unid+'">✕</button></div>';
+  }).join('');
+  Array.prototype.forEach.call(wrap.querySelectorAll('button'), function(b){
+    b.addEventListener('click', function(){
+      selectedUnits = selectedUnits.filter(function(u){ return u!==b.getAttribute('data-unid'); });
+      renderChips(); renderMulti(); renderDropdownOptions(multiInput.value);
+    });
+  });
+}
+
+var multiDropdown = document.getElementById('multiDropdown');
+var multiDisplay = document.getElementById('multiSearchDisplay');
+var multiInput = document.getElementById('multiSearchInput');
+var multiOptList = document.getElementById('multiOptList');
+
+function renderDropdownOptions(filter){
+  filter = (filter||'').trim().toLowerCase();
+  var filtered = UNITS.filter(function(u){
+    if(u.isAC) return false;
+    return u.unid.toLowerCase().indexOf(filter)!==-1;
+  });
+  multiOptList.innerHTML = filtered.map(function(u){
+    var already = selectedUnits.indexOf(u.unid)!==-1;
+    var disabled = already || selectedUnits.length>=5;
+    var lbl = u.isAC ? 'Área Comum' : ('Apto '+u.unid);
+    return '<div class="opt '+(disabled?'disabled':'')+(u.isAC?' opt-ac':'')+'" data-unid="'+u.unid+'">'+
+      '<span>'+lbl+'</span><span>'+(already?'✓':'')+'</span></div>';
+  }).join('') || '<div style="color:#9aa1a8;font-size:12.5px;padding:6px;">Nenhuma unidade encontrada</div>';
+
+  Array.prototype.forEach.call(multiOptList.querySelectorAll('.opt:not(.disabled)'), function(el){
+    el.addEventListener('click', function(){
+      var unid = el.getAttribute('data-unid');
+      if(selectedUnits.indexOf(unid)===-1 && selectedUnits.length<5){
+        selectedUnits.push(unid);
+        renderChips(); renderMulti(); renderDropdownOptions(multiInput.value);
+      }
+    });
+  });
+}
+
+multiDisplay.addEventListener('click', function(){
+  multiDropdown.classList.toggle('open');
+  if(multiDropdown.classList.contains('open')){ multiInput.focus(); renderDropdownOptions(''); }
+});
+multiInput.addEventListener('input', function(e){ renderDropdownOptions(e.target.value); });
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.multi-picker')) multiDropdown.classList.remove('open');
+});
+
+renderChips();
+renderMulti();
+
+/* ================= SECTION 4: Demonstrativo table (AF / AQ / Total) ================= */
+function varCellHtml(val, prev){
+  if(prev === 0){
+    if(val===0) return {html:'<span class="var-cell var-flat">0,0% <span class="arrow">→</span></span>', pct:0};
+    return {html:'<span class="var-cell var-up">novo <span class="arrow">↑</span></span>', pct:null};
+  }
+  var pct = ((val-prev)/prev)*100;
+  var cls = pct>0.5 ? 'var-up' : (pct<-0.5 ? 'var-down' : 'var-flat');
+  var arrow = pct>0.5 ? '↑' : (pct<-0.5 ? '↓' : '→');
+  return {html:'<span class="var-cell '+cls+'">'+(pct>0?'+':'')+pct.toFixed(1)+'% <span class="arrow">'+arrow+'</span></span>', pct:pct};
+}
+
+function renderDemo(unid){
+  var u = findUnit(unid);
+  var totals = totalArr(u);
+  var tbody = document.getElementById('demoTableBody');
+  var rows = '';
+  var maxVar = {pct:-Infinity, month:''};
+  var minVar = {pct:Infinity, month:''};
+
+  MONTHS.forEach(function(m, i){
+    var afVal = u.isAC ? null : u.af[i];
+    var aqVal = u.isAC ? null : u.aq[i];
+    var totVal = totals[i];
+
+    var afCell = '<span class="var-cell var-na">—</span>';
+    var aqCell = '<span class="var-cell var-na">—</span>';
+    var totCell = '<span class="var-cell var-na">—</span>';
+
+    if(i>0){
+      if(!u.isAC){
+        afCell = varCellHtml(afVal, u.af[i-1]).html;
+        aqCell = varCellHtml(aqVal, u.aq[i-1]).html;
+      }
+      var totRes = varCellHtml(totVal, totals[i-1]);
+      totCell = totRes.html;
+      if(totRes.pct!==null){
+        if(totRes.pct>maxVar.pct){ maxVar = {pct:totRes.pct, month:MONTHS[i]}; }
+        if(totRes.pct<minVar.pct){ minVar = {pct:totRes.pct, month:MONTHS[i]}; }
+      }
+    }
+
+    rows += '<tr><td>'+m+'</td>'+
+      '<td>'+(u.isAC ? '—' : fmt(afVal)+' m³')+'</td><td>'+afCell+'</td>'+
+      '<td class="sep-left">'+(u.isAC ? '—' : fmt(aqVal)+' m³')+'</td><td>'+aqCell+'</td>'+
+      '<td class="sep-left">'+fmt(totVal)+' m³</td><td>'+totCell+'</td></tr>';
+  });
+  tbody.innerHTML = rows;
+
+  var total = totals.reduce(function(a,b){return a+b;},0);
+  var avg = total/totals.length;
+  var statsWrap = document.getElementById('demoStats');
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="l">Total no período</div><div class="v">'+fmt(total)+' m³</div></div>'+
+    '<div class="stat"><div class="l">Média mensal</div><div class="v">'+fmt(avg)+' m³</div></div>'+
+    '<div class="stat"><div class="l">Maior alta</div><div class="v var-up">'+(isFinite(maxVar.pct)?(maxVar.pct>0?'+':'')+maxVar.pct.toFixed(1)+'%':'—')+'</div><div style="font-size:11px;color:#9aa1a8;margin-top:2px;">'+(maxVar.month||'')+'</div></div>'+
+    '<div class="stat"><div class="l">Maior queda</div><div class="v var-down">'+(isFinite(minVar.pct)?minVar.pct.toFixed(1)+'%':'—')+'</div><div style="font-size:11px;color:#9aa1a8;margin-top:2px;">'+(minVar.month||'')+'</div></div>';
+}
+renderDemo(UNITS[0].unid);
+demoSel.addEventListener('change', function(e){ renderDemo(e.target.value); });
+
+/* ================= SECTION 5: Variação de todos em um mês (consumo total) ================= */
+var varMonthSel = document.getElementById('varMonthSelect');
+var varSortSel = document.getElementById('varSortSelect');
+
+for(var mi=1; mi<MONTHS.length; mi++){
+  var opt = document.createElement('option');
+  opt.value = mi;
+  opt.textContent = MONTHS[mi] + ' (vs ' + MONTHS[mi-1] + ')';
+  varMonthSel.appendChild(opt);
+}
+varMonthSel.value = MONTHS.length-1;
+
+function computeMonthVariations(monthIdx){
+  return UNITS.map(function(u){
+    var t = totalArr(u);
+    var val = t[monthIdx];
+    var prev = t[monthIdx-1];
+    var rec = {unid:u.unid, isAC:u.isAC, val:val, prev:prev};
+    if(prev === 0){
+      if(val === 0){ rec.type = 'flat'; rec.pct = 0; }
+      else { rec.type = 'new'; rec.pct = Infinity; }
+    } else {
+      var pct = ((val-prev)/prev)*100;
+      rec.pct = pct;
+      rec.type = (pct>0.5) ? 'up' : (pct<-0.5 ? 'down' : 'flat');
+    }
+    return rec;
+  });
+}
+
+function unitSortKey(unid){
+  return unid==='ÁREA COMUM' ? Infinity : parseInt(unid,10);
+}
+
+function renderVarAll(){
+  var monthIdx = parseInt(varMonthSel.value, 10);
+  var sortMode = varSortSel.value;
+  var list = computeMonthVariations(monthIdx);
+
+  var sorted = list.slice();
+  if(sortMode === 'unit'){
+    sorted.sort(function(a,b){ return unitSortKey(a.unid) - unitSortKey(b.unid); });
+  } else if(sortMode === 'asc'){
+    sorted.sort(function(a,b){
+      var av = (a.type==='new') ? -Infinity : a.pct;
+      var bv = (b.type==='new') ? -Infinity : b.pct;
+      return av - bv;
+    });
+  } else if(sortMode === 'consumo_desc'){
+    sorted.sort(function(a,b){ return b.val - a.val; });
+  } else if(sortMode === 'consumo_asc'){
+    sorted.sort(function(a,b){ return a.val - b.val; });
+  } else {
+    sorted.sort(function(a,b){
+      var av = (a.type==='new') ? Infinity : a.pct;
+      var bv = (b.type==='new') ? Infinity : b.pct;
+      return bv - av;
+    });
+  }
+
+  var finitePcts = list.filter(function(r){ return r.type!=='new'; }).map(function(r){ return Math.abs(r.pct); });
+  var maxAbs = Math.max.apply(null, finitePcts.concat([10]));
+
+  var container = document.getElementById('varAllContainer');
+  container.innerHTML = sorted.map(function(r){
+    var pctLabel, pctClass, barHtml;
+    if(r.type === 'new'){
+      pctLabel = 'novo consumo';
+      pctClass = 'newc';
+      barHtml = '<div class="center-line"></div>';
+    } else {
+      pctLabel = (r.pct>0?'+':'') + r.pct.toFixed(1) + '%';
+      pctClass = r.type;
+      var barWidthPct = Math.min(Math.abs(r.pct)/maxAbs*50, 50);
+      var barClass = r.type==='down' ? 'down' : 'up';
+      barHtml = '<div class="center-line"></div>' +
+        (r.type!=='flat' ? '<div class="bar '+barClass+'" style="width:'+barWidthPct.toFixed(2)+'%;"></div>' : '');
+    }
+    var label = r.isAC ? 'Área Comum' : ('Apto '+r.unid);
+    return '<div class="var-row'+(r.isAC?' is-ac':'')+'">'+
+      '<div class="unit-label'+(r.isAC?' ac':'')+'">'+label+'</div>'+
+      '<div class="track">'+barHtml+'</div>'+
+      '<div class="consumo-val">'+fmt(r.val)+' m³</div>'+
+      '<div class="pct-val '+pctClass+'">'+pctLabel+'</div>'+
+    '</div>';
+  }).join('');
+
+  var ups = list.filter(function(r){return r.type==='up';}).length;
+  var downs = list.filter(function(r){return r.type==='down';}).length;
+  var news = list.filter(function(r){return r.type==='new';}).length;
+  var flats = list.filter(function(r){return r.type==='flat';}).length;
+  var statsWrap = document.getElementById('varAllStats');
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="l">Aumentaram</div><div class="v var-up">'+ups+'</div></div>'+
+    '<div class="stat"><div class="l">Reduziram</div><div class="v var-down">'+downs+'</div></div>'+
+    '<div class="stat"><div class="l">Novo consumo</div><div class="v" style="color:var(--newc);">'+news+'</div></div>'+
+    '<div class="stat"><div class="l">Sem variação</div><div class="v" style="color:var(--flat);">'+flats+'</div></div>';
+}
+renderVarAll();
+varMonthSel.addEventListener('change', renderVarAll);
+varSortSel.addEventListener('change', renderVarAll);
+
+/* ================= SECTION 6: Top 15 consumidores do mês (consumo total) ================= */
+var top15MonthSel = document.getElementById('top15MonthSelect');
+MONTHS.forEach(function(m, i){
+  var opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = m;
+  top15MonthSel.appendChild(opt);
+});
+top15MonthSel.value = MONTHS.length-1;
+
+function renderTop15(){
+  var monthIdx = parseInt(top15MonthSel.value, 10);
+  var list = UNITS.filter(function(u){ return !u.isAC; }).map(function(u){
+    var t = totalArr(u);
+    var val = t[monthIdx];
+    var rec = {unid:u.unid, isAC:u.isAC, val:val};
+    if(monthIdx === 0){
+      rec.pctType = 'na';
+    } else {
+      var prev = t[monthIdx-1];
+      if(prev === 0){
+        rec.pctType = (val===0) ? 'flat' : 'new';
+        rec.pct = 0;
+      } else {
+        var pct = ((val-prev)/prev)*100;
+        rec.pct = pct;
+        rec.pctType = (pct>0.5) ? 'up' : (pct<-0.5 ? 'down' : 'flat');
+      }
+    }
+    return rec;
+  });
+
+  list.sort(function(a,b){ return b.val - a.val; });
+  var top15 = list.slice(0,15);
+  var maxVal = Math.max.apply(null, top15.map(function(r){return r.val;}).concat([1]));
+
+  var container = document.getElementById('top15Container');
+  container.innerHTML = top15.map(function(r, i){
+    var rank = i+1;
+    var barWidthPct = (r.val/maxVal*100).toFixed(1);
+    var pctLabel, pctClass;
+    if(r.pctType === 'na'){ pctLabel = '—'; pctClass = 'na'; }
+    else if(r.pctType === 'new'){ pctLabel = 'novo consumo'; pctClass = 'newc'; }
+    else if(r.pctType === 'flat'){ pctLabel = (r.pct>0?'+':'')+r.pct.toFixed(1)+'%'; pctClass = 'flat'; }
+    else { pctLabel = (r.pct>0?'+':'')+r.pct.toFixed(1)+'%'; pctClass = r.pctType; }
+
+    var label = r.isAC ? 'Área Comum' : ('Apto '+r.unid);
+    return '<div class="top15-row'+(r.isAC?' is-ac':'')+'">'+
+      '<div class="rank'+(rank<=3?' top3':'')+'">'+rank+'º</div>'+
+      '<div class="unit-label'+(r.isAC?' ac':'')+'">'+label+'</div>'+
+      '<div class="track"><div class="bar" style="width:'+barWidthPct+'%;"></div></div>'+
+      '<div class="consumo-val">'+fmt(r.val)+' m³</div>'+
+      '<div class="pct-val '+pctClass+'">'+pctLabel+'</div>'+
+    '</div>';
+  }).join('');
+}
+renderTop15();
+top15MonthSel.addEventListener('change', renderTop15);
+
+/* ================= SECTION 7: Alertas de desvio de consumo (>30%, consumo total) ================= */
+var ALERT_THRESHOLD = 30;
+var alertMonthSel = document.getElementById('alertMonthSelect');
+for(var ami=1; ami<MONTHS.length; ami++){
+  var aopt = document.createElement('option');
+  aopt.value = ami;
+  aopt.textContent = MONTHS[ami] + ' (vs ' + MONTHS[ami-1] + ')';
+  alertMonthSel.appendChild(aopt);
+}
+alertMonthSel.value = MONTHS.length-1;
+
+function renderAlerts(){
+  var monthIdx = parseInt(alertMonthSel.value, 10);
+  var list = computeMonthVariations(monthIdx);
+
+  var alerts = list.filter(function(r){
+    return r.type === 'new' || Math.abs(r.pct) > ALERT_THRESHOLD;
+  });
+
+  alerts.sort(function(a,b){
+    var av = (a.type==='new') ? Infinity : Math.abs(a.pct);
+    var bv = (b.type==='new') ? Infinity : Math.abs(b.pct);
+    return bv - av;
+  });
+
+  var container = document.getElementById('alertContainer');
+  if(alerts.length === 0){
+    container.innerHTML = '<div class="alert-empty">Nenhuma unidade ultrapassou '+ALERT_THRESHOLD+'% de variação em '+MONTHS[monthIdx]+'.</div>';
+  } else {
+    container.innerHTML = alerts.map(function(r){
+      var rowClass, pctLabel, pctClass, icon;
+      if(r.type === 'new'){
+        rowClass = 'newc'; pctClass='newc'; pctLabel = 'Novo consumo'; icon='●';
+      } else if(r.type === 'up'){
+        rowClass = 'up'; pctClass='up'; pctLabel = '+'+r.pct.toFixed(1)+'%'; icon='▲';
+      } else {
+        rowClass = 'down'; pctClass='down'; pctLabel = r.pct.toFixed(1)+'%'; icon='▼';
+      }
+      var label = r.isAC ? 'Área Comum' : ('Apto '+r.unid);
+      return '<div class="alert-row '+rowClass+'">'+
+        '<div class="alert-unit'+(r.isAC?' ac':'')+'">'+label+'</div>'+
+        '<div class="alert-detail">'+fmt(r.val)+' m³ <span class="prev-val">(mês anterior: '+fmt(r.prev)+' m³)</span></div>'+
+        '<div class="alert-pct '+pctClass+'">'+icon+' '+pctLabel+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  var ups = alerts.filter(function(r){return r.type==='up';}).length;
+  var downs = alerts.filter(function(r){return r.type==='down';}).length;
+  var news = alerts.filter(function(r){return r.type==='new';}).length;
+  var statsWrap = document.getElementById('alertStats');
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="l">Total de alertas</div><div class="v">'+alerts.length+'</div></div>'+
+    '<div class="stat"><div class="l">Altas > '+ALERT_THRESHOLD+'%</div><div class="v var-up">'+ups+'</div></div>'+
+    '<div class="stat"><div class="l">Quedas > '+ALERT_THRESHOLD+'%</div><div class="v var-down">'+downs+'</div></div>'+
+    '<div class="stat"><div class="l">Novo consumo</div><div class="v" style="color:var(--newc);">'+news+'</div></div>';
+}
+renderAlerts();
+alertMonthSel.addEventListener('change', renderAlerts);
+
+/* ================= SECTION 8: Tendência de consumo sustentada ================= */
+function linregSlope(values){
+  var n = values.length;
+  var sumX=0,sumY=0,sumXY=0,sumXX=0;
+  for(var i=0;i<n;i++){ sumX+=i; sumY+=values[i]; sumXY+=i*values[i]; sumXX+=i*i; }
+  var denom = (n*sumXX - sumX*sumX);
+  if(denom===0) return 0;
+  return (n*sumXY - sumX*sumY)/denom;
+}
+function meanArr(arr){ return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+function stddevArr(arr){
+  var m = meanArr(arr);
+  var variance = arr.reduce(function(s,v){ return s+(v-m)*(v-m); },0)/arr.length;
+  return Math.sqrt(variance);
+}
+
+function computeTrendAnalysis(){
+  var aptosOnly = UNITS.filter(function(u){ return !u.isAC; });
+  return aptosOnly.map(function(u){
+    var t = totalArr(u);
+    var n = t.length;
+    var slope = linregSlope(t);
+    var m = meanArr(t);
+    var slopePct = m>0.05 ? (slope/m*100) : 0;
+    var baselineMonths = t.slice(0, n-2);
+    var baselineMean = baselineMonths.length ? meanArr(baselineMonths) : 0;
+    var recentMonths = t.slice(n-2);
+    var recentMean = meanArr(recentMonths);
+    var deviationPct = baselineMean>0.05 ? ((recentMean-baselineMean)/baselineMean*100) : (recentMean>0.05 ? Infinity : 0);
+    var sd = stddevArr(t);
+    var cv = m>0.05 ? (sd/m*100) : 0;
+
+    var classification = 'normal';
+    if(slopePct > 8 && deviationPct > 20){
+      classification = 'alta';
+    } else if(cv < 15 && m > 3 && deviationPct > 10){
+      classification = 'estavel_elevado';
+    }
+
+    return {unid:u.unid, slope:slope, slopePct:slopePct, deviationPct:deviationPct, cv:cv, mean:m, classification:classification};
+  });
+}
+
+function renderTrendTable(){
+  var list = computeTrendAnalysis();
+  var flagged = list.filter(function(r){ return r.classification!=='normal'; });
+  flagged.sort(function(a,b){
+    var scoreA = (a.classification==='alta'? a.slopePct+a.deviationPct : a.deviationPct - a.cv);
+    var scoreB = (b.classification==='alta'? b.slopePct+b.deviationPct : b.deviationPct - b.cv);
+    return scoreB - scoreA;
+  });
+
+  var tbody = document.getElementById('trendTableBody');
+  if(flagged.length===0){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9aa1a8;padding:20px;">Nenhum apartamento com sinais de tendência de alta ou consumo estável e elevado no período.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = flagged.map(function(r){
+    var badge, badgeColor;
+    if(r.classification==='alta'){ badge='Tendência de alta'; badgeColor='var(--up)'; }
+    else { badge='Estável e elevado'; badgeColor='#c2470f'; }
+    var devLabel = isFinite(r.deviationPct) ? (r.deviationPct>0?'+':'')+r.deviationPct.toFixed(1)+'%' : 'novo consumo';
+    return '<tr><td>Apto '+r.unid+'</td>'+
+      '<td>'+(r.slope>0?'+':'')+r.slope.toFixed(2)+' m³/mês</td>'+
+      '<td>'+devLabel+'</td>'+
+      '<td>'+r.cv.toFixed(1)+'%</td>'+
+      '<td><span style="color:'+badgeColor+';font-weight:700;">● '+badge+'</span></td></tr>';
+  }).join('');
+}
+renderTrendTable();
+
+/* -------- Gráfico da Seção 8: consumo + linha de tendência -------- */
+var trendUnitSel = document.getElementById('trendUnitSelect');
+UNITS.filter(function(u){ return !u.isAC; }).forEach(function(u){
+  var o = document.createElement('option'); o.value=u.unid; o.textContent='Apto '+u.unid;
+  trendUnitSel.appendChild(o);
+});
+
+function renderTrendChart(unid){
+  var u = findUnit(unid);
+  var t = totalArr(u);
+  var n = t.length;
+  var box = document.getElementById('trendChartBox');
+  var tooltip = document.getElementById('trendTooltip');
+  var old = box.querySelector('svg');
+  if(old) old.remove();
+
+  var slope = linregSlope(t);
+  var m = meanArr(t);
+  var sumX=0; for(var i=0;i<n;i++){ sumX+=i; }
+  var meanX = sumX/n;
+  var intercept = m - slope*meanX;
+  var predicted = t.map(function(v,i){ return intercept + slope*i; });
+  var residuals = t.map(function(v,i){ return v - predicted[i]; });
+  var sdResid = stddevArr(residuals);
+  var deviationFlags = t.map(function(v,i){ return sdResid>0.05 && residuals[i] > 1.5*sdResid; });
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:16, bottom:34, left:48};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var allVals = t.concat(predicted);
+  var maxVal = Math.max.apply(null, allVals.concat([1])) * 1.2;
+  var bandW = innerW / n;
+  var barW = Math.min(bandW*0.5, 40);
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gv = (maxVal*g/gridSteps);
+    var txt = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label', 'text-anchor':'end'});
+    txt.textContent = gv.toFixed(0);
+    svg.appendChild(txt);
+  }
+
+  function yFor(val){ return margin.top + innerH - (maxVal>0 ? (val/maxVal)*innerH : 0); }
+
+  t.forEach(function(val, i){
+    var x = margin.left + bandW*i + (bandW-barW)/2;
+    var y = yFor(val);
+    var barH = margin.top+innerH-y;
+    var isDeviation = deviationFlags[i];
+    var rect = svgEl('rect', {
+      x:x, y:y, width:barW, height:Math.max(barH,1.5), rx:4, ry:4,
+      class:'bar-rect', fill: isDeviation ? 'var(--up)' : 'rgba(124,92,255,0.55)'
+    });
+    rect.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+(isDeviation?' · ponto de desvio':'')+'</div><b>'+fmt(val)+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    rect.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(rect);
+
+    var label = svgEl('text', {x:margin.left+bandW*i+bandW/2, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    label.textContent = MONTHS[i];
+    svg.appendChild(label);
+
+    if(isDeviation){
+      var ring = svgEl('circle', {cx:x+barW/2, cy:y-10, r:5, fill:'none', stroke:'var(--up)', 'stroke-width':2});
+      svg.appendChild(ring);
+    }
+  });
+
+  // linha de tendência
+  var trendPts = predicted.map(function(v,i){ return [margin.left+bandW*i+bandW/2, yFor(v)]; });
+  var trendD = trendPts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:trendD, fill:'none', stroke:'#9aa1a8', 'stroke-width':2, 'stroke-dasharray':'6,4'}));
+
+  box.appendChild(svg);
+
+  var hint = document.getElementById('trendUnitHint');
+  var nDev = deviationFlags.filter(Boolean).length;
+  hint.textContent = nDev>0
+    ? (nDev===1 ? '1 ponto de desvio' : nDev+' pontos de desvio')+' identificado(s) em relação à linha de tendência (barras vermelhas, com um círculo de destaque).'
+    : 'Nenhum ponto se desvia de forma relevante da linha de tendência.';
+}
+renderTrendChart(UNITS.filter(function(u){ return !u.isAC; })[0].unid);
+trendUnitSel.addEventListener('change', function(e){ renderTrendChart(e.target.value); });
+
+/* ================= SECTION 9: Alertas por componente (AF vs AQ) ================= */
+var componentMonthSel = document.getElementById('componentMonthSelect');
+for(var cmi=1; cmi<MONTHS.length; cmi++){
+  var cmOpt = document.createElement('option');
+  cmOpt.value = cmi;
+  cmOpt.textContent = MONTHS[cmi] + ' (vs ' + MONTHS[cmi-1] + ')';
+  componentMonthSel.appendChild(cmOpt);
+}
+componentMonthSel.value = MONTHS.length-1;
+
+var COMPONENT_THRESHOLD = 30;
+var MIX_THRESHOLD_PP = 20;
+
+function pctVar(val, prev){
+  if(prev===0){
+    if(val===0) return {pct:0, type:'flat'};
+    return {pct:Infinity, type:'new'};
+  }
+  var pct = ((val-prev)/prev)*100;
+  return {pct:pct, type: pct>0.5 ? 'up' : (pct<-0.5?'down':'flat')};
+}
+
+function renderComponentAlerts(){
+  var monthIdx = parseInt(componentMonthSel.value, 10);
+  var aptosOnly = UNITS.filter(function(u){ return !u.isAC; });
+
+  var results = [];
+  aptosOnly.forEach(function(u){
+    var afNow = u.af[monthIdx], afPrev = u.af[monthIdx-1];
+    var aqNow = u.aq[monthIdx], aqPrev = u.aq[monthIdx-1];
+    var afVar = pctVar(afNow, afPrev);
+    var aqVar = pctVar(aqNow, aqPrev);
+
+    var totalNow = afNow+aqNow, totalPrev = afPrev+aqPrev;
+    var mixNow = totalNow>0.05 ? (afNow/totalNow*100) : null;
+    var mixPrev = totalPrev>0.05 ? (afPrev/totalPrev*100) : null;
+    var mixChange = (mixNow!==null && mixPrev!==null) ? (mixNow-mixPrev) : null;
+
+    var flags = [];
+    if(afVar.type==='new' || Math.abs(afVar.pct) > COMPONENT_THRESHOLD){
+      flags.push({tipo:'AF', pct:afVar.pct, type:afVar.type});
+    }
+    if(aqVar.type==='new' || Math.abs(aqVar.pct) > COMPONENT_THRESHOLD){
+      flags.push({tipo:'AQ', pct:aqVar.pct, type:aqVar.type});
+    }
+    var mixFlag = (mixChange!==null && Math.abs(mixChange) > MIX_THRESHOLD_PP) ? mixChange : null;
+
+    if(flags.length>0 || mixFlag!==null){
+      results.push({unid:u.unid, flags:flags, mixChange:mixFlag});
+    }
+  });
+
+  results.sort(function(a,b){
+    var sortMode = componentSortSel.value;
+    if(sortMode === 'unit'){
+      return parseInt(a.unid,10) - parseInt(b.unid,10);
+    }
+    function maxFlag(r){
+      var m = 0;
+      r.flags.forEach(function(f){ m = Math.max(m, f.type==='new'?999:Math.abs(f.pct)); });
+      if(r.mixChange!==null) m = Math.max(m, Math.abs(r.mixChange));
+      return m;
+    }
+    return maxFlag(b)-maxFlag(a);
+  });
+
+  var container = document.getElementById('componentAlertContainer');
+  if(results.length===0){
+    container.innerHTML = '<div class="alert-empty">Nenhum apartamento com alerta isolado de AF/AQ ou mudança relevante de proporção em '+MONTHS[monthIdx]+'.</div>';
+    return;
+  }
+  container.innerHTML = results.map(function(r){
+    var parts = r.flags.map(function(f){
+      var color = f.tipo==='AF' ? 'var(--af)' : 'var(--aq)';
+      var label = f.type==='new' ? 'novo consumo' : (f.pct>0?'+':'')+f.pct.toFixed(1)+'%';
+      return '<span style="color:'+color+';font-weight:700;">'+f.tipo+' '+label+'</span>';
+    });
+    if(r.mixChange!==null){
+      parts.push('<span style="color:var(--total);font-weight:700;">mix AF '+(r.mixChange>0?'+':'')+r.mixChange.toFixed(1)+' p.p.</span>');
+    }
+    return '<div class="alert-row" style="border-left-color:var(--af);">'+
+      '<div class="alert-unit">Apto '+r.unid+'</div>'+
+      '<div class="alert-detail">'+parts.join(' · ')+'</div>'+
+      '<div class="alert-pct" style="font-size:12px;color:var(--text-faint);">'+MONTHS[monthIdx]+'</div>'+
+    '</div>';
+  }).join('');
+}
+var componentSortSel = document.getElementById('componentSortSelect');
+renderComponentAlerts();
+componentMonthSel.addEventListener('change', renderComponentAlerts);
+componentSortSel.addEventListener('change', renderComponentAlerts);
+
+/* ================= SECTION 10: Consumo persistente em unidades atípicas ================= */
+function computePersistentLowFlow(){
+  var aptosOnly = UNITS.filter(function(u){ return !u.isAC; });
+  var ZERO_THRESHOLD = 0.3;
+  var LOW_MIN = 0.1;
+  var LOW_MAX = 4.0;
+
+  var results = [];
+  aptosOnly.forEach(function(u){
+    var t = totalArr(u);
+    var n = t.length;
+    var earlier = t.slice(0, n-2);
+    var zeroCount = earlier.filter(function(v){ return v < ZERO_THRESHOLD; }).length;
+    var isHistoricallyZero = earlier.length>0 && (zeroCount/earlier.length) >= 0.7;
+    if(!isHistoricallyZero) return;
+
+    var run = [];
+    for(var i=n-1; i>=0; i--){
+      var v = t[i];
+      if(v >= LOW_MIN && v <= LOW_MAX){
+        run.unshift({month:MONTHS[i], val:v});
+      } else {
+        break;
+      }
+    }
+    if(run.length >= 2){
+      var vals = run.map(function(r){ return r.val; });
+      var maxV = Math.max.apply(null, vals);
+      var minV = Math.min.apply(null, vals);
+      var consistent = (minV>0.05) ? (maxV/minV <= 2.5) : true;
+      if(consistent){
+        results.push({unid:u.unid, run:run, confidence: run.length>=3 ? 'alta' : 'moderada'});
+      }
+    }
+  });
+  return results;
+}
+
+function renderPersistentLowFlow(){
+  var results = computePersistentLowFlow();
+  results.sort(function(a,b){ return b.run.length - a.run.length; });
+
+  var container = document.getElementById('persistentContainer');
+  if(results.length===0){
+    container.innerHTML = '<div class="alert-empty">Nenhuma unidade historicamente zerada apresentando consumo baixo e persistente no momento.</div>';
+    return;
+  }
+  container.innerHTML = results.map(function(r){
+    var valsLabel = r.run.map(function(x){ return x.month+': '+fmt(x.val)+' m³'; }).join(' · ');
+    var confColor = r.confidence==='alta' ? 'var(--up)' : '#c2470f';
+    return '<div class="alert-row" style="border-left-color:'+confColor+';">'+
+      '<div class="alert-unit">Apto '+r.unid+'</div>'+
+      '<div class="alert-detail">'+valsLabel+'</div>'+
+      '<div class="alert-pct" style="font-size:12px;color:'+confColor+';">Confiança: '+r.confidence+' ('+r.run.length+' meses)</div>'+
+    '</div>';
+  }).join('');
+}
+renderPersistentLowFlow();
+
+/* ================= SECTION 11: Registro de picos isolados ================= */
+function medianArr(arr){
+  var sorted = arr.slice().sort(function(a,b){return a-b;});
+  var mid = Math.floor(sorted.length/2);
+  return sorted.length%2!==0 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
+}
+
+var PEAK_MIN_RATIO = 5;
+var PEAK_MIN_ABS_VAL = 5;
+var PEAK_NEIGHBOR_FRACTION = 0.4;
+
+// "Pico resolvido": exige isolamento nos dois lados (mês anterior E seguinte baixos) —
+// só entra quando o evento já se resolveu de forma clara (retorno confirmado).
+function findResolvedPeaks(series){
+  var n = series.length;
+  var found = [];
+  for(var i=0;i<n-1;i++){ // exclui o último mês (sem "depois" para confirmar retorno)
+    var others = series.slice(0,i).concat(series.slice(i+1));
+    var med = medianArr(others);
+    var medFloor = Math.max(med, 0.15);
+    var val = series[i];
+    if(val < PEAK_MIN_ABS_VAL) continue;
+    var ratio = val/medFloor;
+    if(ratio < PEAK_MIN_RATIO) continue;
+
+    var before = i>0 ? series[i-1] : null;
+    var after = series[i+1];
+    var lowThresh = val*PEAK_NEIGHBOR_FRACTION;
+    var beforeOk = (before===null) || (before<=lowThresh);
+    var afterOk = (after<=lowThresh);
+    if(!beforeOk || !afterOk) continue;
+
+    found.push({monthIdx:i, val:val, median:med, ratio:ratio, status:'resolvido'});
+  }
+  return found;
+}
+
+// "Em observação": olha só o último mês disponível, comparado à mediana histórica —
+// não exige que o mês anterior esteja baixo, pois uma subida ainda em curso
+// (ex.: unidade recém-ocupada, vazamento ainda ativo) tende a ter o mês anterior já elevado também.
+function findRecentObservation(series){
+  var n = series.length;
+  var val = series[n-1];
+  if(val < PEAK_MIN_ABS_VAL) return null;
+  var baseline = series.slice(0, n-1);
+  var med = medianArr(baseline);
+  var medFloor = Math.max(med, 0.15);
+  var ratio = val/medFloor;
+  if(ratio < PEAK_MIN_RATIO) return null;
+  return {monthIdx:n-1, val:val, median:med, ratio:ratio, status:'em_observacao'};
+}
+
+function renderIsolatedPeaks(){
+  var aptosOnly = UNITS.filter(function(u){ return !u.isAC; });
+  var resolvedResults = [];
+  var observationResults = [];
+  aptosOnly.forEach(function(u){
+    var t = totalArr(u);
+    findResolvedPeaks(t).forEach(function(p){ p.unid = u.unid; resolvedResults.push(p); });
+    var obs = findRecentObservation(t);
+    if(obs){ obs.unid = u.unid; observationResults.push(obs); }
+  });
+
+  // picos resolvidos em ordem cronológica inversa (mais recente primeiro, mais antigo por último)
+  resolvedResults.sort(function(a,b){ return b.monthIdx - a.monthIdx; });
+  // casos em observação primeiro (mais recentes/acionáveis), ordenados pela maior razão
+  observationResults.sort(function(a,b){ return b.ratio - a.ratio; });
+
+  var allResults = observationResults.concat(resolvedResults);
+
+  var container = document.getElementById('isolatedPeaksContainer');
+  if(allResults.length===0){
+    container.innerHTML = '<div class="alert-empty">Nenhum pico isolado identificado no histórico até o momento.</div>';
+    return;
+  }
+  container.innerHTML = allResults.map(function(p){
+    var isResolved = p.status==='resolvido';
+    var color = isResolved ? 'var(--up)' : 'var(--newc)';
+    var label = isResolved ? 'Pico resolvido' : 'Consumo elevado recente, aguardando confirmação';
+    return '<div class="alert-row" style="border-left-color:'+color+';">'+
+      '<div class="alert-unit">Apto '+p.unid+'</div>'+
+      '<div class="alert-detail">'+MONTHS[p.monthIdx]+': '+fmt(p.val)+' m³ <span class="prev-val">(mediana dos demais meses: '+fmt(p.median)+' m³ · '+p.ratio.toFixed(1)+'x)</span></div>'+
+      '<div class="alert-pct" style="font-size:12px;color:'+color+';">'+label+'</div>'+
+    '</div>';
+  }).join('');
+}
+renderIsolatedPeaks();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gravura Perdizes — Água x Gás, Consumo Combinado</title>
+<style>
+  :root{
+    --bg: #ffffff;
+    --panel: #f7f7f8;
+    --panel-2: #eef0f1;
+    --line: #e1e4e7;
+    --water: #2e9bf0;
+    --water-2: #0f6fc0;
+    --hot: #ff6b3d;
+    --hot-2: #c2470f;
+    --totalw: #7c5cff;
+    --gas: #ff8a3d;
+    --gas-2: #c2540a;
+    --newc: #2563eb;
+    --text: #1c1f22;
+    --text-dim: #5b6168;
+    --text-faint: #9aa1a8;
+    --up: #e5484d;
+    --down: #14b881;
+    --flat: #9aa1a8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 480px at 12% -12%, rgba(46,155,240,0.05), transparent 58%),
+      radial-gradient(1000px 480px at 100% -4%, rgba(255,138,61,0.05), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Söhne', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height:100vh;
+    padding: 28px 20px 60px;
+  }
+  .wrap{max-width:1240px;margin:0 auto;}
+
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap: 20px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+    padding-bottom:20px; margin-bottom:26px;
+  }
+  .brand-eyebrow{
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--water-2); font-weight:600; margin-bottom:6px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .dot-pair{display:inline-flex; align-items:center; gap:3px;}
+  .dot-pair span{width:7px;height:7px;border-radius:50%; display:inline-block;}
+  .dot-pair .d-water{background:var(--water); box-shadow:0 0 9px 2px rgba(46,155,240,.55);}
+  .dot-pair .d-gas{background:var(--gas); box-shadow:0 0 9px 2px rgba(255,138,61,.55);}
+  h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 30px; font-weight:600; margin:0; letter-spacing:-.01em;
+    color:var(--text);
+  }
+  h1 em{
+    font-style:normal;
+    background:linear-gradient(90deg, var(--water-2), var(--gas-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .subtitle{color:var(--text-dim); font-size:13.5px; margin-top:6px; max-width:600px;}
+  .period-badge{ text-align:right; font-size:12px; color:var(--text-faint); }
+  .period-badge .big{
+    font-size:22px; font-family:Georgia, serif; display:block; margin-bottom:2px;
+    background:linear-gradient(90deg, var(--water-2), var(--gas-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px;
+    padding:22px 24px; margin-bottom:22px;
+  }
+  .card h2{
+    font-family:Georgia, serif; font-size:18px; margin:0 0 4px; color:var(--text);
+    display:flex; align-items:center; gap:10px;
+  }
+  .card h2 .idx{
+    font-size:11px; color:var(--water-2); border:1px solid var(--water); border-radius:999px;
+    width:22px;height:22px; display:inline-flex; align-items:center; justify-content:center;
+    font-family: inherit; flex-shrink:0;
+  }
+  .card .desc{color:var(--text-dim); font-size:13px; margin-bottom:18px; max-width:760px;}
+
+  .controls-row{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:16px;}
+  select{
+    background:#ffffff; border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:9px 12px; font-size:13.5px; font-family:inherit;
+    outline:none;
+  }
+  select:focus{border-color:var(--water);}
+  .field-label{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-faint); margin-bottom:6px; display:block;}
+
+  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-bottom:14px; font-size:12.5px;}
+  .legend-item{display:flex; align-items:center; gap:7px; color:var(--text-dim);}
+  .legend-dot{width:10px;height:10px;border-radius:50%;}
+  .legend-sq{width:10px;height:10px;border-radius:3px;}
+  .legend-ln{width:16px;height:0;border-top-width:2.5px; border-top-style:solid;}
+  .legend-ln.dash{border-top-style:dashed;}
+
+  .chart-box{position:relative; width:100%; height:380px;}
+  .chart-box svg{width:100%; height:100%; overflow:visible;}
+
+  .bar-rect{ transition: opacity .15s; cursor:pointer; }
+  .bar-rect:hover{ opacity:.8; }
+  .axis-label{ fill:#8a9198; font-size:11.5px; font-family:inherit; }
+  .axis-label.water{ fill:var(--water-2); }
+  .axis-label.gas{ fill:var(--gas-2); }
+  .grid-line{ stroke: rgba(20,25,30,0.08); stroke-width:1; }
+  .val-label{ fill:#1c1f22; font-size:10.5px; font-family:inherit; text-anchor:middle; }
+  .hover-col{ fill:transparent; cursor:pointer; }
+  .hover-col:hover{ fill:rgba(20,25,30,.03); }
+  .guide-line{ stroke:rgba(20,25,30,.14); stroke-width:1; stroke-dasharray:3,3; opacity:0; pointer-events:none; }
+
+  .svg-tooltip{
+    position:absolute; pointer-events:none; background:#1c1f22; border:1px solid #1c1f22;
+    border-radius:8px; padding:9px 12px; font-size:12.5px; color:#ffffff;
+    transform:translate(-50%,-110%); opacity:0; transition:opacity .1s; z-index:10;
+    box-shadow:0 8px 20px rgba(20,25,30,.25); white-space:nowrap;
+  }
+  .svg-tooltip.show{opacity:1;}
+  .svg-tooltip .t-title{color:#c3c8cd; font-size:10.5px; margin-bottom:4px;}
+  .svg-tooltip .t-row{display:flex; align-items:center; gap:6px; margin-top:2px;}
+  .svg-tooltip .t-dot{width:7px;height:7px;border-radius:50%; flex-shrink:0;}
+
+  .stat-row{display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;}
+  .stat{
+    flex:1; min-width:150px; background:#f7f7f8; border:1px solid var(--line);
+    border-radius:9px; padding:12px 14px;
+  }
+  .stat .l{font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-faint);}
+  .stat .v{font-size:19px; font-family:Georgia,serif; margin-top:4px;}
+  .stat .sub{font-size:11px; color:var(--text-faint); margin-top:2px;}
+
+  .month-stats-grid{
+    display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-top:16px;
+  }
+  .month-stat-cell{
+    background:#f7f7f8; border:1px solid var(--line); border-radius:9px;
+    padding:10px 8px; text-align:center;
+  }
+  .month-stat-cell .m-label{
+    font-size:11px; font-weight:600; color:var(--text); margin-bottom:8px;
+    padding-bottom:6px; border-bottom:1px solid var(--line);
+  }
+  .month-stat-cell .m-row{font-size:10.5px; color:var(--text-faint); margin-top:4px; display:flex; justify-content:space-between; gap:6px;}
+  .month-stat-cell .m-row b{font-weight:700;}
+  .month-stat-cell .m-row.water b{color:var(--water-2);}
+  .month-stat-cell .m-row.gas b{color:var(--gas-2);}
+  @media (max-width:900px){ .month-stats-grid{grid-template-columns:repeat(2, 1fr);} }
+
+  .corr-note{
+    margin-top:14px; padding:12px 16px; border-radius:9px; border:1px solid var(--line);
+    background:#fbfbfc; font-size:12.5px; color:var(--text-dim); line-height:1.55;
+  }
+  .corr-note b{color:var(--text);}
+
+  /* ---------- Seções 3 e 4: modelo AQ→gás e alertas ---------- */
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{
+    text-align:right; color:var(--text-faint); font-weight:500; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.05em; padding:9px 8px; border-bottom:1px solid var(--line);
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{padding:9px 8px; text-align:right; border-bottom:1px solid rgba(20,25,30,.05); color:var(--text);}
+  tbody td:first-child{text-align:left; color:var(--text-dim); font-weight:500;}
+  tbody tr:hover{background:rgba(20,25,30,.025);}
+  tbody tr.flag-row{background:rgba(229,72,77,.055);}
+  tbody tr.flag-row:hover{background:rgba(229,72,77,.09);}
+  .table-scroll{max-height:420px; overflow-y:auto; border:1px solid var(--line); border-radius:10px;}
+  .table-scroll table{font-size:12px;}
+  .table-scroll thead th{position:sticky; top:0; background:#f7f7f8; z-index:1;}
+
+  .situacao-tag{font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap; display:inline-block;}
+  .situacao-tag.ok{background:rgba(20,184,129,.10); color:var(--down);}
+  .situacao-tag.high{background:rgba(255,138,61,.16); color:var(--gas-2);}
+  .situacao-tag.low{background:rgba(20,184,129,.14); color:#0d8a61;}
+  .situacao-tag.na{background:rgba(20,25,30,.06); color:var(--text-faint);}
+
+  .model-empty{
+    text-align:center; padding:24px 16px; color:var(--text-faint); font-size:13px;
+    border:1px dashed var(--line); border-radius:10px; background:#fbfbfc; margin-bottom:16px;
+  }
+
+  .model-type-badge{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; font-weight:700;
+    padding:4px 10px; border-radius:999px; white-space:nowrap; display:inline-block;
+  }
+  .model-type-badge.individual{background:rgba(46,155,240,.14); color:var(--water-2);}
+  .model-type-badge.similarity{background:rgba(124,92,255,.14); color:#5636d6;}
+  .model-type-note{font-size:11px; color:var(--text-faint); margin-top:4px; line-height:1.4;}
+
+  .mini-alert-list{display:flex; flex-direction:column; gap:6px; margin-top:14px;}
+  .mini-alert-row{
+    display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px;
+    border:1px solid var(--line); background:#fbfbfc; font-size:12px; color:var(--text-dim);
+  }
+  .mini-alert-row b{color:var(--text); font-weight:600;}
+
+  .type-badge{
+    font-size:10px; text-transform:uppercase; letter-spacing:.04em; font-weight:700;
+    padding:3px 9px; border-radius:999px; white-space:nowrap; flex-shrink:0;
+  }
+  .type-badge.leak{background:rgba(229,72,77,.13); color:var(--up);}
+  .type-badge.high{background:rgba(255,138,61,.16); color:var(--gas-2);}
+  .type-badge.low{background:rgba(20,184,129,.13); color:var(--down);}
+  .type-badge.stuck{background:rgba(37,99,235,.13); color:var(--newc);}
+  .type-badge.aq_stuck{background:rgba(229,72,77,.13); color:#b3261e;}
+  .type-badge.vacant{background:rgba(20,25,30,.08); color:var(--text-faint);}
+  .type-badge.indeterminate{background:rgba(255,193,7,.18); color:#8a6100;}
+  .type-badge.imprecise{background:rgba(124,92,255,.14); color:#5636d6;}
+
+  .alert-container{display:flex; flex-direction:column; gap:8px; max-height:640px; overflow-y:auto; padding-right:4px;}
+  .alert-row{
+    display:grid; grid-template-columns:96px 1fr auto; align-items:center;
+    gap:14px; padding:12px 16px; border-radius:9px; border:1px solid var(--line);
+    border-left:4px solid var(--flat); background:#fbfbfc;
+  }
+  .alert-row.leak{border-left-color:var(--up); background:rgba(229,72,77,.045);}
+  .alert-row.high{border-left-color:var(--gas-2); background:rgba(255,138,61,.05);}
+  .alert-row.low{border-left-color:var(--down); background:rgba(20,184,129,.045);}
+  .alert-row.stuck{border-left-color:var(--newc); background:rgba(37,99,235,.05);}
+  .alert-row .alert-unit{font-size:13.5px; font-weight:700; color:var(--text);}
+  .alert-row .alert-unit .month{display:block; font-size:10.5px; font-weight:500; color:var(--text-faint); margin-top:1px;}
+  .alert-row .alert-detail{font-size:12px; color:var(--text-dim); line-height:1.4;}
+  .alert-empty{
+    text-align:center; padding:28px 16px; color:var(--text-faint); font-size:13.5px;
+    border:1px dashed var(--line); border-radius:10px; background:#fbfbfc;
+  }
+
+  footer{text-align:center; color:var(--text-faint); font-size:11.5px; margin-top:36px;}
+
+  @media (max-width:760px){
+    header{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow"><span class="dot-pair"><span class="d-water"></span><span class="d-gas"></span></span>RESIDENCIAL GRAVURA PERDIZES</div>
+      <h1>Água <em>x</em> Gás — Consumo Combinado</h1>
+      <div class="subtitle">Sobreposição dos dados de água (fria, quente e total) e gás das 92 unidades do Bloco A, para observar a relação entre os dois consumos mês a mês.</div>
+    </div>
+    <div class="period-badge">
+      <span class="big" id="periodLabel">Out/25 – Ago/26</span>
+      11 meses de leitura consolidados
+    </div>
+  </header>
+
+  <!-- 1. CONSUMO TOTAL DO CONDOMÍNIO — ÁGUA x GÁS -->
+  <div class="card">
+    <h2><span class="idx">1</span>Consumo total do condomínio — água x gás</h2>
+    <div class="desc">Evolução do consumo total somado de todas as unidades, mês a mês. Água (aptos + área comum) na escala à esquerda, gás (aptos) na escala à direita.</div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-ln" style="border-color:var(--water);"></span>Água total (m³) — eixo esquerdo</div>
+      <div class="legend-item"><span class="legend-ln" style="border-color:var(--gas);"></span>Gás total (m³) — eixo direito</div>
+    </div>
+    <div class="chart-box" id="totalChartBox">
+      <div class="svg-tooltip" id="totalTooltip"></div>
+    </div>
+    <div class="month-stats-grid" id="totalMonthStats"></div>
+  </div>
+
+  <!-- 2. CONSUMO POR APARTAMENTO — ÁGUA (AF/AQ/TOTAL) x GÁS -->
+  <div class="card">
+    <h2><span class="idx">2</span>Consumo por apartamento — água x gás</h2>
+    <div class="desc">Escolha uma unidade para ver o consumo mensal de água fria, água quente e total (barras, escala à esquerda) sobreposto ao consumo de gás (linha, escala à direita). O objetivo principal é comparar a água quente com o gás, já que o aquecimento de água costuma ser o maior uso de gás do apartamento.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Unidade</span>
+        <select id="unitSelect"></select>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-sq" style="background:var(--water);"></span>Água fria (AF)</div>
+      <div class="legend-item"><span class="legend-sq" style="background:var(--hot);"></span>Água quente (AQ)</div>
+      <div class="legend-item"><span class="legend-sq" style="background:var(--totalw);"></span>Total água (AF+AQ)</div>
+      <div class="legend-item"><span class="legend-ln" style="border-color:var(--gas-2);"></span>Gás — eixo direito</div>
+    </div>
+    <div class="chart-box" id="unitChartBox">
+      <div class="svg-tooltip" id="unitTooltip"></div>
+    </div>
+    <div class="stat-row" id="unitStats"></div>
+    <div class="corr-note" id="corrNote"></div>
+  </div>
+
+  <!-- 3. MODELO ÁGUA QUENTE → GÁS ESPERADO, POR APARTAMENTO -->
+  <div class="card">
+    <h2><span class="idx">3</span>Gás esperado x gás real, por apartamento</h2>
+    <div class="desc">Como a leitura de água é visual (praticamente sem erro) e a de gás é por telemetria, usamos o consumo de água quente de cada unidade para estimar quanto gás seria esperado naquele mês, e comparamos com o valor real registrado. Meses em que o gás real se desvia muito do esperado são destacados como possíveis vazamentos ou erros de medição. Quando o AQ de uma unidade não varia o suficiente para estimar sua própria reta com confiança, usamos um <b>modelo por semelhança</b>: a inclinação (m³ de gás por m³ de AQ) é emprestada da mediana das unidades da mesma coluna do prédio (mesma posição por andar, provável mesma planta/aquecedor) que têm modelo individual, e só o intercepto (o gás que não depende de AQ, como fogão) continua sendo estimado com os dados da própria unidade.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Unidade</span>
+        <select id="modelUnitSelect"></select>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-ln" style="border-color:var(--gas-2);"></span>Gás real</div>
+      <div class="legend-item"><span class="legend-ln dash" style="border-color:var(--text-faint);"></span>Gás esperado (modelo a partir do AQ)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--up);"></span>Mês com desvio relevante</div>
+    </div>
+    <div id="modelTypeBadgeWrap" style="margin-bottom:14px;"></div>
+    <div class="chart-box" id="modelChartBox">
+      <div class="svg-tooltip" id="modelTooltip"></div>
+    </div>
+    <div id="modelEmptyMsg"></div>
+    <div class="stat-row" id="modelStats"></div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>AQ (m³)</th>
+            <th>Gás real (m³)</th>
+            <th>Gás esperado (m³)</th>
+            <th>Resíduo (m³)</th>
+            <th>Situação</th>
+          </tr>
+        </thead>
+        <tbody id="modelTableBody"></tbody>
+      </table>
+    </div>
+    <div id="modelPatternAlerts"></div>
+  </div>
+
+  <!-- 4. ALERTAS DE POSSÍVEL VAZAMENTO OU ERRO DE MEDIÇÃO — VISÃO DO CONDOMÍNIO -->
+  <div class="card">
+    <h2><span class="idx">4</span>Alertas de vazamento ou erro de medição — condomínio</h2>
+    <div class="desc">Varredura das 92 unidades ao longo dos meses do período, cruzando o modelo água quente → gás esperado (seção 3) com dois padrões literais: água quente caiu mas o gás não acompanhou, e leituras de gás idênticas em meses consecutivos enquanto a água quente variou (indício de medidor travado). Inclui também dois alertas de período inteiro: unidades com AQ zerado o tempo todo (diferenciando hidrômetro travado de unidade vazia, usando água fria e gás como evidência cruzada) e unidades cujo modelo se mostrou pouco preciso (limiar de alerta desproporcional à própria média de gás). Lista ordenada por relevância dentro de cada tipo — use como ponto de partida para investigação com a Gestway, não como confirmação de vazamento.</div>
+    <div class="controls-row">
+      <div>
+        <span class="field-label">Filtrar por tipo</span>
+        <select id="alertTypeFilter">
+          <option value="all">Todos os tipos</option>
+          <option value="aq_stuck">Hidrômetro de AQ travado?</option>
+          <option value="leak">AQ caiu, gás não acompanhou</option>
+          <option value="high">Gás real acima do esperado</option>
+          <option value="low">Gás real abaixo do esperado</option>
+          <option value="indeterminate">AQ zerado — indeterminado</option>
+          <option value="stuck">Leituras de gás repetidas (medidor travado?)</option>
+          <option value="imprecise">Modelo pouco preciso</option>
+          <option value="vacant">Unidade provavelmente vazia</option>
+        </select>
+      </div>
+      <div>
+        <span class="field-label">Mês</span>
+        <select id="alertMonthFilter">
+          <option value="all">Período todo</option>
+        </select>
+      </div>
+    </div>
+    <div class="stat-row" id="condoAlertStats" style="margin-bottom:6px;"></div>
+    <div id="condoAlertContainer" class="alert-container" style="margin-top:14px;"></div>
+  </div>
+
+  <footer>Sobreposição dos relatórios GAS_02 a GAS_08-2026 e AGUA_2025-10 a AGUA_2026-08 · Gestway Gestão de Infraestruturas · Gráficos renderizados em SVG nativo (sem dependências externas)</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   DADOS — GÁS (do dashboard de gás)
+   ============================================================ */
+var GAS = {"months": ["Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26", "Abr/26", "Mai/26", "Jun/26", "Jul/26", "Ago/26"], "units": [{"unid": "501", "consumos": [34.2, 33.19, 35.74, 19.4, 22.02, 28.09, 25.93, 33.68, 50.29, 36.01, 51.9]}, {"unid": "502", "consumos": [0.01, 0, 0, 0, 17.41, 26.56, 29.41, 40.5, 37.43, 53.04, 44.37]}, {"unid": "503", "consumos": [0, 5.6, 31.06, 13.24, 14.57, 13.58, 20.11, 13.95, 15.72, 10.08, 2.07]}, {"unid": "504", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "601", "consumos": [57.04, 61.19, 63.2, 38.01, 48.03, 52.72, 53.15, 63.18, 82.42, 87.11, 77.87]}, {"unid": "602", "consumos": [11.26, 28.98, 25.99, 15.58, 18.02, 19.43, 20.75, 28.19, 31.74, 30.76, 29.36]}, {"unid": "603", "consumos": [41.7, 41.05, 25, 7.69, 23.51, 30.21, 23.36, 25.3, 33.61, 23.7, 34.82]}, {"unid": "604", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.84]}, {"unid": "701", "consumos": [48.3, 36.19, 25.06, 21.22, 19.96, 23.72, 24.07, 30.86, 45.87, 33.63, 41.47]}, {"unid": "702", "consumos": [48.6, 43.72, 26.17, 10.62, 14.5, 13.62, 21.07, 28.11, 38.97, 36.45, 30.8]}, {"unid": "703", "consumos": [47.43, 49.77, 43.64, 26.79, 33.13, 29.39, 37.65, 44.97, 52, 60.57, 55.56]}, {"unid": "704", "consumos": [0.34, 10.56, 31.16, 21.06, 22.52, 27.54, 27.54, 35.11, 40.87, 37.53, 38.51]}, {"unid": "801", "consumos": [0, 0.64, 0.1, 0, 0, 0, 0, 0.01, 0, 0, 0]}, {"unid": "802", "consumos": [18.58, 45.34, 25.93, 3.57, 10.17, 6.04, 9.31, 10.92, 8.69, 11.81, 8.56]}, {"unid": "803", "consumos": [33.13, 28.87, 21.04, 12.33, 18.53, 17.35, 18.43, 24.81, 29.2, 34.45, 31.08]}, {"unid": "804", "consumos": [0, 0, 0, 0, 0.09, 0, 0, 0, 0, 0.22, 1.45]}, {"unid": "901", "consumos": [0, 0, 0, 0, 0.03, 0, 0.01, 0, 0, 0.57, 36.86]}, {"unid": "902", "consumos": [48.67, 46.24, 39.44, 20.34, 33.81, 22.49, 29.07, 45.16, 45.95, 44.6, 48.64]}, {"unid": "903", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "904", "consumos": [40.13, 35.5, 28.05, 10.29, 17.82, 18.28, 9.48, 12.09, 23.12, 23.05, 31.1]}, {"unid": "1001", "consumos": [26.56, 26.18, 21.06, 13.55, 14.38, 18, 14.91, 12.88, 16.78, 22.14, 22.1]}, {"unid": "1002", "consumos": [28.61, 27.62, 19.15, 12.44, 15.65, 16.15, 15.48, 22.6, 27.9, 36.71, 29.19]}, {"unid": "1003", "consumos": [38.55, 47.09, 35.79, 24.18, 23.19, 22.67, 21.52, 29.53, 41.27, 41.99, 38.44]}, {"unid": "1004", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "1101", "consumos": [43, 50.33, 42.99, 30.41, 34.56, 35.5, 37.39, 55.02, 33.14, 29.63, 46.37]}, {"unid": "1102", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0.01, 0, 0.12]}, {"unid": "1103", "consumos": [16.37, 14.87, 11.65, 3.98, 10.64, 8.84, 4.93, 12.32, 8.75, 10, 17.43]}, {"unid": "1104", "consumos": [44, 34.29, 32.34, 21.9, 27.37, 19.2, 17.63, 28.76, 40.47, 35.91, 46.41]}, {"unid": "1201", "consumos": [36.73, 34.82, 38.01, 15.37, 27.95, 21.45, 27.35, 30.56, 42.04, 29.11, 40.31]}, {"unid": "1202", "consumos": [14.74, 14.35, 10.39, 7.19, 7.29, 8.13, 9.55, 11.77, 13.52, 12.04, 8.75]}, {"unid": "1203", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "1204", "consumos": [48.14, 33.12, 28.05, 18.32, 18.69, 22.01, 22.5, 29.34, 31.3, 34.51, 31.16]}, {"unid": "1301", "consumos": [42.8, 34.82, 25.04, 18.52, 17.39, 28.17, 24.32, 33.31, 42.26, 36.27, 38.26]}, {"unid": "1302", "consumos": [34.96, 26.4, 22.91, 7.9, 6.8, 15.95, 14.2, 17.78, 24.98, 28.87, 22.83]}, {"unid": "1303", "consumos": [6.54, 19.83, 13.36, 5.85, 6.65, 11.9, 21.34, 25.43, 25.58, 30.14, 30.37]}, {"unid": "1304", "consumos": [0, 0, 0, 0, 0, 0, 0, 21.63, 45.63, 59.87, 59.82]}, {"unid": "1401", "consumos": [9.35, 17.85, 13.29, 5.87, 12.03, 11.55, 10.4, 11.94, 17.6, 13.74, 18.47]}, {"unid": "1402", "consumos": [11.72, 24.16, 21.27, 17.65, 19.72, 18.72, 18.35, 25.39, 29.14, 28.74, 30.57]}, {"unid": "1403", "consumos": [7.77, 7.59, 12.63, 6.53, 6.75, 6.86, 8.83, 10.68, 7.59, 13.53, 10.72]}, {"unid": "1404", "consumos": [8.58, 19.14, 15.6, 8.48, 11.88, 12.83, 14.48, 12.56, 20.29, 17.85, 19.39]}, {"unid": "1501", "consumos": [6, 10.5, 9.71, 8.89, 8.12, 9.22, 8.24, 7.97, 11.06, 10.64, 10.76]}, {"unid": "1502", "consumos": [20.35, 36.08, 25.66, 22.24, 19.58, 19.49, 17.42, 21.8, 24.28, 23.12, 19.15]}, {"unid": "1503", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 1.13, 23.71, 26.12]}, {"unid": "1504", "consumos": [14.43, 47.42, 50.1, 18.84, 25.53, 30.08, 32.18, 36.99, 49.98, 57.79, 52.17]}, {"unid": "1601", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "1602", "consumos": [0, 48.64, 47.91, 29, 36.12, 51.01, 41.76, 48.76, 56.97, 74.52, 68.38]}, {"unid": "1603", "consumos": [27.51, 25.69, 24.82, 15.27, 21.4, 21.88, 26.43, 33.16, 44.76, 32.34, 37.76]}, {"unid": "1604", "consumos": [8.06, 17.87, 15.53, 6.95, 6.43, 9.94, 10.31, 11.95, 14.82, 15.62, 13.35]}, {"unid": "1701", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "1702", "consumos": [20.11, 51.64, 47.66, 14.35, 30.31, 36.73, 33.52, 41.85, 54.08, 50.78, 38.59]}, {"unid": "1703", "consumos": [18.78, 18.69, 12.32, 9.84, 4.93, 9.82, 13.71, 13.85, 20.68, 21.23, 22.54]}, {"unid": "1704", "consumos": [14.76, 17.22, 13.66, 17.69, 15.82, 10.25, 18.05, 23.8, 30.73, 39.83, 34.66]}, {"unid": "1801", "consumos": [43.86, 51.52, 43.73, 32.11, 33.79, 29.98, 32.6, 38.86, 32.54, 40.78, 40.78]}, {"unid": "1802", "consumos": [50.02, 50.25, 41.52, 15.7, 29.13, 38.18, 34.5, 51.02, 53.13, 48.36, 32.58]}, {"unid": "1803", "consumos": [58.07, 23.63, 51.47, 36.74, 37.34, 36.67, 39.86, 47.64, 53.05, 65.91, 62.84]}, {"unid": "1804", "consumos": [41.04, 29.67, 29.22, 18.94, 24.94, 24.91, 25.33, 32.83, 36.55, 35.9, 34.4]}, {"unid": "1901", "consumos": [87.31, 80.28, 46.35, 33.32, 62.87, 60.74, 59.07, 70.38, 81.29, 80.1, 73.08]}, {"unid": "1902", "consumos": [0, 0, 0, 0.08, 0, 0, 0, 0.05, 21.51, 33.17, 35.75]}, {"unid": "1903", "consumos": [0, 0, 0, 0, 0, 0, 0.03, 0.01, 0, 0, 0]}, {"unid": "1904", "consumos": [0.09, 0, 0, 0, 0, 0, 0.24, 0, 0.36, 0, 0]}, {"unid": "2001", "consumos": [38.92, 35.31, 25.62, 11.51, 16.43, 21.87, 22.16, 25.59, 31, 18.51, 33.1]}, {"unid": "2002", "consumos": [94.59, 16.1, 13.68, 7.81, 10.46, 11.91, 11.48, 13.24, 19.23, 22.2, 18.75]}, {"unid": "2003", "consumos": [16.18, 45.29, 38.74, 29.37, 36.67, 34.41, 38.78, 39.49, 44.54, 54.2, 51.64]}, {"unid": "2004", "consumos": [14.61, 36.13, 40.88, 22.88, 23.95, 24.97, 28.1, 34.89, 48.57, 54.45, 57.75]}, {"unid": "2101", "consumos": [0, 0.07, 27.11, 25.77, 20.95, 17.34, 13.14, 25.43, 33.55, 36.34, 38.32]}, {"unid": "2102", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "2103", "consumos": [35.33, 32.06, 27.94, 15.64, 11.12, 27.12, 14.89, 23.48, 23.6, 28.13, 55.14]}, {"unid": "2104", "consumos": [18.29, 13.29, 19.94, 9.09, 12.94, 13.23, 12.77, 15.06, 20.65, 19.66, 17.49]}, {"unid": "2201", "consumos": [33.37, 40.83, 25.61, 14.04, 27.44, 24.69, 26.37, 22.08, 39.58, 42.79, 40.76]}, {"unid": "2202", "consumos": [49.07, 38.44, 30.65, 12.83, 22, 19.25, 33.03, 43.8, 58.01, 41.23, 51.34]}, {"unid": "2203", "consumos": [53.64, 48.56, 33.81, 21.61, 31.5, 32.62, 32.78, 43.02, 60.13, 70.22, 68.2]}, {"unid": "2204", "consumos": [25.99, 27.15, 25.83, 16.37, 15.88, 21.83, 26.39, 24.78, 27.08, 29.85, 16.22]}, {"unid": "2301", "consumos": [0.69, 1.91, 21.31, 17.53, 16.44, 17.76, 17.87, 20.56, 24.54, 35.87, 41.68]}, {"unid": "2302", "consumos": [29.65, 17.88, 14.87, 9.33, 11.71, 9.68, 15.44, 13.51, 18.28, 21.69, 26.23]}, {"unid": "2303", "consumos": [0, 53.58, 52.17, 15.29, 46.45, 34.65, 36.31, 52.05, 38.92, 26.94, 40.37]}, {"unid": "2304", "consumos": [36.29, 34.94, 18.6, 22.85, 21.85, 10.55, 21.29, 18.4, 32.03, 37.11, 35.57]}, {"unid": "2401", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0.52, 2.21, 8.69]}, {"unid": "2402", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0.35, 0, 21.75]}, {"unid": "2403", "consumos": [43.69, 33.21, 21.08, 16.95, 21.96, 20.35, 20.78, 12.3, 29.18, 25.24, 26.68]}, {"unid": "2404", "consumos": [32.51, 37.92, 40.47, 20.34, 33.2, 31.56, 34.51, 37.12, 38.19, 40.68, 25.39]}, {"unid": "2501", "consumos": [55.03, 47.23, 39.09, 22.73, 34.78, 21.24, 34.18, 43.63, 44.04, 39.63, 45.09]}, {"unid": "2502", "consumos": [0, 0, 0, 0, 0, 0.03, 0, 0, 0, 8.81, 21.9]}, {"unid": "2503", "consumos": [33.77, 30.69, 14.75, 9.83, 10.48, 9.81, 13.22, 11.67, 4.91, 13.3, 12.32]}, {"unid": "2504", "consumos": [39.4, 29.94, 20.97, 14.22, 14.56, 11.26, 14.49, 14.1, 29.79, 31.21, 25.15]}, {"unid": "2601", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "2602", "consumos": [34.26, 24.24, 2.35, 8.01, 0.01, 20.5, 60.96, 90.16, 101.54, 105.56, 113.83]}, {"unid": "2603", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"unid": "2604", "consumos": [64.48, 53.05, 48.91, 36.84, 44.34, 41.59, 43.7, 54.9, 61.7, 60.09, 58.22]}, {"unid": "2701", "consumos": [80.56, 81.11, 76.21, 35.25, 67.01, 58.06, 62.08, 47.62, 73.94, 53.12, 53.38]}, {"unid": "2702", "consumos": [38.55, 37.58, 38.46, 30.14, 18.88, 35.7, 39.76, 35.41, 45.48, 40.38, 37.19]}, {"unid": "2703", "consumos": [36.95, 32.09, 25.58, 10, 11.25, 19.56, 21.1, 22.48, 27.75, 26.02, 25.4]}, {"unid": "2704", "consumos": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7.54]}]};
+
+/* ============================================================
+   DADOS — ÁGUA (do dashboard de água)
+   ============================================================ */
+var AGUA = {"months": ["Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26", "Abr/26", "Mai/26", "Jun/26", "Jul/26", "Ago/26"], "units": [{"unid": "501", "af": [11.0, 21.0, 8.0, 13.0, 9.0, 9.74, 12.31, 9.22, 10.73, 9.35, 10.18], "aq": [10.0, 3.0, 17.0, 15.0, 14.0, 16.0, 18.0, 13.0, 19.0, 16.0, 19.0]}, {"unid": "502", "af": [0.0, 7.0, 3.0, 2.0, 5.0, 8.8, 8.09, 6.75, 6.22, 7.22, 6.72], "aq": [0.0, 0.0, 0.0, 0.0, 7.0, 9.0, 12.0, 13.0, 12.0, 16.0, 12.0]}, {"unid": "503", "af": [1.0, 2.0, 12.0, 6.0, 6.0, 6.77, 20.13, 0.81, 0.94, 0.82, 0.54], "aq": [0.0, 0.0, 9.0, 4.0, 3.0, 4.0, 7.0, 1.0, 2.0, 2.0, 0.0]}, {"unid": "504", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.99, 0.0, 0.01, 0.0, 0.04, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "601", "af": [16.0, 16.0, 16.0, 17.0, 20.0, 19.72, 21.38, 19.48, 19.61, 20.8, 17.84], "aq": [16.0, 16.0, 13.0, 11.0, 16.0, 16.0, 19.0, 16.0, 20.0, 23.0, 21.0]}, {"unid": "602", "af": [2.0, 7.0, 9.0, 7.0, 7.0, 8.53, 8.81, 5.0, 8.18, 7.35, 6.86], "aq": [5.0, 5.0, 7.0, 3.0, 4.0, 4.0, 6.0, 8.51, 7.0, 6.0, 5.0]}, {"unid": "603", "af": [10.0, 7.0, 10.0, 6.0, 11.0, 9.51, 10.01, 6.9, 7.85, 3.94, 7.67], "aq": [13.0, 6.0, 3.0, 1.0, 4.0, 5.0, 4.0, 3.0, 4.0, 3.0, 5.0]}, {"unid": "604", "af": [0.0, 2.0, 1.0, 0.0, 1.0, 2.47, 1.85, 1.62, 1.6, 2.31, 3.82], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "701", "af": [13.0, 19.0, 10.0, 15.0, 12.0, 12.35, 11.28, 9.29, 10.48, 7.78, 10.83], "aq": [18.0, 11.0, 7.0, 7.0, 8.0, 9.0, 9.0, 8.0, 13.0, 8.0, 9.0]}, {"unid": "702", "af": [17.0, 13.0, 16.0, 14.0, 13.0, 18.46, 19.28, 15.47, 15.05, 16.31, 11.05], "aq": [14.0, 18.0, 11.0, 7.0, 8.0, 11.0, 11.0, 12.0, 14.0, 14.0, 9.0]}, {"unid": "703", "af": [7.0, 10.0, 11.0, 9.0, 9.0, 6.9, 11.0, 10.03, 7.45, 10.0, 8.49], "aq": [5.0, 14.0, 11.0, 9.0, 9.0, 6.0, 12.0, 10.0, 13.0, 15.0, 14.0]}, {"unid": "704", "af": [0.0, 6.0, 11.0, 15.0, 13.0, 13.73, 13.64, 12.82, 14.95, 13.15, 12.07], "aq": [1.0, 2.0, 12.0, 12.0, 13.0, 14.0, 15.0, 13.0, 18.0, 16.0, 12.0]}, {"unid": "801", "af": [0.0, 2.0, 4.0, 2.0, 2.0, 1.14, 1.57, 1.12, 1.1, 1.03, 1.74], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "802", "af": [1.0, 10.0, 5.0, 2.0, 9.0, 4.83, 6.01, 7.68, 3.34, 3.96, 2.88], "aq": [3.0, 12.0, 7.0, 2.0, 4.0, 3.0, 3.0, 3.0, 3.0, 4.0, 3.0]}, {"unid": "803", "af": [9.0, 13.0, 14.0, 12.0, 16.0, 13.72, 17.22, 17.31, 17.91, 18.38, 13.43], "aq": [13.0, 13.0, 11.0, 10.0, 12.0, 10.0, 12.0, 11.0, 12.0, 15.0, 9.0]}, {"unid": "804", "af": [0.0, 1.0, 1.0, 2.0, 1.0, 0.97, 0.21, 0.1, 0.47, 0.43, 2.33], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "901", "af": [0.0, 2.0, 37.0, 0.0, 0.0, 1.16, 0.71, 0.91, 1.08, 1.94, 7.97], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0]}, {"unid": "902", "af": [10.0, 13.0, 12.0, 6.0, 12.0, 8.9, 9.24, 10.85, 10.53, 12.23, 13.26], "aq": [11.0, 9.0, 7.0, 4.0, 9.0, 7.0, 7.0, 10.0, 11.0, 9.0, 8.0]}, {"unid": "903", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.41, 0.02, 0.04, 0.01, 0.0, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "904", "af": [13.0, 10.0, 9.0, 6.0, 9.0, 10.23, 9.29, 9.33, 10.21, 8.04, 9.33], "aq": [11.0, 15.0, 14.0, 8.0, 13.0, 13.0, 12.0, 11.0, 15.0, 11.0, 13.0]}, {"unid": "1001", "af": [6.0, 19.0, 10.0, 12.0, 9.0, 10.56, 12.43, 8.33, 6.06, 8.2, 7.28], "aq": [9.0, 1.0, 8.0, 9.0, 8.0, 8.0, 9.0, 7.0, 6.0, 9.0, 7.0]}, {"unid": "1002", "af": [11.0, 9.0, 9.0, 11.0, 8.0, 11.88, 8.71, 10.41, 10.0, 12.68, 10.24], "aq": [19.0, 17.0, 8.0, 8.0, 9.0, 9.0, 8.0, 10.43, 10.34, 8.0, 10.0]}, {"unid": "1003", "af": [13.0, 8.0, 6.0, 6.0, 8.0, 5.56, 6.7, 4.61, 5.71, 5.81, 5.58], "aq": [15.0, 17.0, 12.0, 15.0, 15.0, 12.0, 13.0, 12.0, 15.0, 16.0, 12.0]}, {"unid": "1004", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1101", "af": [11.0, 9.0, 9.0, 12.0, 10.0, 11.09, 13.34, 18.0, 18.0, 11.34, 8.43], "aq": [6.0, 18.0, 15.0, 14.0, 16.0, 16.0, 18.0, 11.68, 10.24, 21.0, 13.0]}, {"unid": "1102", "af": [0.0, 0.0, 0.0, 0.0, 1.0, 0.07, 0.0, 3.05, 3.46, 1.23, 2.66], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1103", "af": [3.0, 5.0, 5.0, 3.0, 6.0, 5.86, 3.43, 3.0, 4.0, 2.7, 6.05], "aq": [1.0, 4.0, 3.0, 2.0, 4.0, 2.0, 2.0, 4.75, 5.0, 1.0, 4.0]}, {"unid": "1104", "af": [11.0, 6.0, 6.0, 6.0, 9.0, 6.58, 8.36, 7.34, 10.63, 7.83, 10.62], "aq": [16.0, 6.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 13.0, 9.0, 13.0]}, {"unid": "1201", "af": [16.0, 12.0, 13.0, 9.0, 12.0, 9.41, 11.72, 8.92, 8.2, 1.83, 5.95], "aq": [13.0, 12.0, 14.0, 8.0, 13.0, 9.0, 14.0, 11.0, 14.0, 11.0, 13.0]}, {"unid": "1202", "af": [2.0, 7.0, 6.0, 7.0, 6.0, 5.57, 8.48, 3.0, 4.0, 5.22, 6.12], "aq": [4.0, 4.0, 4.0, 2.0, 3.0, 3.0, 3.0, 5.66, 5.82, 3.0, 3.0]}, {"unid": "1203", "af": [0.0, 0.0, 0.0, 1.0, 0.0, 0.11, 0.0, 0.01, 0.02, 0.01, 1.5], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1204", "af": [16.0, 10.0, 10.0, 10.0, 9.0, 10.47, 10.5, 9.83, 9.84, 9.86, 9.98], "aq": [16.0, 11.0, 9.0, 11.0, 9.0, 10.0, 11.0, 9.0, 12.0, 12.0, 9.0]}, {"unid": "1301", "af": [17.0, 19.0, 16.0, 14.0, 17.0, 20.77, 21.69, 9.0, 14.0, 15.1, 16.52], "aq": [13.0, 13.0, 11.0, 9.0, 9.0, 13.0, 13.0, 13.95, 17.59, 11.0, 10.0]}, {"unid": "1302", "af": [12.0, 15.0, 10.0, 9.0, 5.0, 10.42, 9.09, 6.0, 9.0, 9.89, 8.47], "aq": [16.0, 4.0, 9.0, 5.0, 3.0, 8.0, 7.0, 7.94, 8.42, 10.0, 8.0]}, {"unid": "1303", "af": [3.0, 3.0, 7.0, 8.0, 7.0, 5.35, 7.22, 5.62, 4.78, 5.83, 6.44], "aq": [4.0, 2.0, 4.0, 5.0, 4.0, 3.0, 5.0, 4.0, 4.0, 5.0, 5.0]}, {"unid": "1304", "af": [0.0, 2.0, 4.0, 2.0, 3.0, 5.68, 3.57, 10.08, 10.85, 11.09, 10.1], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 9.0, 13.0, 11.0]}, {"unid": "1401", "af": [3.0, 7.0, 7.0, 4.0, 8.0, 5.77, 6.81, 4.0, 6.29, 5.99, 6.4], "aq": [3.0, 6.0, 5.0, 2.0, 6.0, 3.0, 5.0, 5.71, 6.0, 5.0, 5.0]}, {"unid": "1402", "af": [5.0, 14.0, 15.0, 18.0, 15.0, 15.88, 17.31, 13.36, 12.45, 13.67, 13.63], "aq": [9.0, 6.0, 6.0, 7.0, 7.0, 6.0, 7.0, 6.0, 9.0, 8.0, 8.0]}, {"unid": "1403", "af": [3.0, 4.0, 6.0, 9.0, 6.0, 8.8, 6.85, 5.35, 3.68, 5.71, 4.82], "aq": [3.0, 2.0, 4.0, 4.0, 3.0, 3.0, 4.0, 3.0, 2.0, 4.0, 3.0]}, {"unid": "1404", "af": [3.0, 6.0, 6.0, 6.0, 5.0, 5.36, 6.29, 5.24, 4.76, 4.64, 5.24], "aq": [3.0, 3.0, 4.0, 1.0, 3.0, 2.0, 3.0, 2.0, 3.0, 3.0, 4.0]}, {"unid": "1501", "af": [2.0, 9.0, 8.0, 10.0, 9.0, 9.73, 9.43, 7.68, 9.02, 8.96, 8.87], "aq": [5.0, 2.0, 2.0, 2.0, 2.0, 3.0, 2.0, 1.0, 2.0, 2.0, 2.0]}, {"unid": "1502", "af": [7.0, 13.0, 10.0, 15.0, 10.0, 13.08, 10.79, 7.0, 8.0, 9.89, 7.65], "aq": [7.0, 10.0, 9.0, 10.0, 9.0, 8.0, 8.0, 9.25, 7.75, 6.0, 5.0]}, {"unid": "1503", "af": [0.0, 2.0, 1.0, 1.0, 0.0, 1.81, 2.66, 0.0, 0.0, 6.75, 6.77], "aq": [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.18, 4.27, 2.0, 2.0]}, {"unid": "1504", "af": [11.0, 14.0, 16.0, 11.0, 13.0, 13.95, 14.95, 14.32, 13.08, 15.68, 13.96], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1601", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.63, 0.0, 0.0, 0.02, 0.03, 0.02], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1602", "af": [3.0, 5.0, 17.0, 15.0, 18.0, 19.77, 21.84, 15.31, 15.16, 17.19, 13.93], "aq": [0.0, 0.0, 14.0, 13.0, 13.0, 18.0, 18.0, 14.0, 17.0, 22.0, 22.0]}, {"unid": "1603", "af": [8.0, 8.0, 8.0, 9.0, 7.0, 8.09, 10.44, 7.97, 8.67, 8.05, 9.61], "aq": [10.0, 17.0, 9.0, 9.0, 10.0, 11.0, 12.0, 10.0, 14.0, 12.0, 10.0]}, {"unid": "1604", "af": [5.0, 8.0, 7.0, 7.0, 7.0, 8.59, 8.36, 6.81, 7.36, 7.67, 6.23], "aq": [4.0, 7.0, 5.0, 3.0, 4.0, 4.0, 5.0, 4.0, 5.0, 6.0, 5.0]}, {"unid": "1701", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.93, 0.0, 0.0, 0.0, 0.05, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1702", "af": [11.0, 21.0, 21.0, 12.0, 20.0, 20.39, 22.42, 17.49, 20.85, 18.56, 15.02], "aq": [13.0, 16.0, 15.0, 8.0, 14.0, 16.0, 16.0, 12.0, 18.0, 16.0, 12.0]}, {"unid": "1703", "af": [4.0, 7.0, 6.0, 8.0, 3.0, 5.56, 9.89, 6.37, 7.48, 7.0, 6.15], "aq": [4.0, 8.0, 5.0, 7.0, 4.0, 4.0, 8.0, 6.0, 8.0, 7.0, 9.0]}, {"unid": "1704", "af": [1.0, 8.0, 7.0, 14.0, 9.0, 6.97, 9.61, 9.26, 7.76, 8.37, 7.36], "aq": [4.0, 3.0, 4.0, 0.0, 2.0, 3.0, 2.0, 4.0, 8.0, 11.0, 14.0]}, {"unid": "1801", "af": [14.0, 14.0, 14.0, 15.0, 13.0, 13.36, 13.83, 12.35, 13.07, 12.63, 12.72], "aq": [17.0, 10.0, 8.0, 8.0, 9.0, 8.0, 10.0, 8.0, 10.0, 9.0, 7.0]}, {"unid": "1802", "af": [18.0, 13.0, 14.0, 6.0, 12.0, 14.28, 15.92, 13.91, 13.17, 10.78, 8.15], "aq": [21.0, 16.0, 16.0, 8.0, 13.0, 15.0, 15.0, 16.0, 17.0, 15.0, 8.0]}, {"unid": "1803", "af": [17.0, 5.0, 10.0, 18.0, 19.0, 10.67, 14.17, 7.95, 5.92, 5.25, 6.98], "aq": [17.0, 6.0, 13.0, 14.0, 13.0, 12.0, 13.0, 9.0, 12.0, 10.0, 12.0]}, {"unid": "1804", "af": [18.0, 6.0, 5.0, 5.0, 8.0, 7.18, 8.27, 6.87, 6.72, 7.35, 6.18], "aq": [13.0, 3.0, 4.0, 2.0, 4.0, 3.0, 3.0, 3.0, 3.0, 4.0, 3.0]}, {"unid": "1901", "af": [22.0, 34.0, 20.0, 12.0, 27.0, 23.14, 26.76, 22.29, 28.29, 25.74, 22.94], "aq": [24.0, 19.0, 16.0, 10.0, 20.0, 15.0, 16.0, 15.0, 18.0, 18.0, 18.0]}, {"unid": "1902", "af": [0.0, 0.0, 3.0, 2.0, 3.0, 4.36, 2.88, 3.35, 13.32, 18.82, 17.76], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 10.0, 10.0]}, {"unid": "1903", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 2.75, 1.4, 1.4, 0.14, 1.61, 1.3], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "1904", "af": [0.0, 1.0, 1.0, 2.0, 0.0, 0.5, 1.55, 0.29, 0.16, 0.13, 0.0], "aq": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 72.0, 0.0, 0.0, 0.0]}, {"unid": "2001", "af": [13.0, 12.0, 11.0, 9.0, 8.0, 11.37, 12.31, 11.01, 11.77, 7.24, 12.39], "aq": [21.0, 11.0, 9.0, 7.0, 7.0, 10.0, 10.0, 8.0, 9.0, 5.0, 8.0]}, {"unid": "2002", "af": [13.0, 6.0, 8.0, 7.0, 7.0, 6.74, 7.1, 5.98, 6.06, 6.44, 5.76], "aq": [19.0, 3.0, 3.0, 2.0, 4.0, 3.0, 3.0, 3.0, 3.0, 5.0, 4.0]}, {"unid": "2003", "af": [1.0, 13.0, 10.0, 8.0, 13.0, 8.91, 11.91, 8.1, 9.88, 10.25, 8.83], "aq": [10.0, 6.0, 5.0, 5.0, 6.0, 5.0, 6.0, 4.0, 7.0, 7.0, 7.0]}, {"unid": "2004", "af": [5.0, 19.0, 7.0, 10.0, 8.0, 8.22, 8.26, 7.08, 8.22, 8.03, 9.32], "aq": [8.0, 0.0, 14.0, 12.0, 12.0, 14.0, 13.0, 13.0, 17.0, 19.0, 17.0]}, {"unid": "2101", "af": [0.0, 11.0, 10.0, 12.0, 12.0, 10.63, 7.61, 7.55, 6.53, 8.43, 6.22], "aq": [3.0, 0.0, 8.0, 15.0, 11.0, 7.0, 8.0, 12.0, 12.0, 15.0, 14.0]}, {"unid": "2102", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.87, 0.07, 0.04, 0.0, 0.0, 0.0], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "2103", "af": [14.0, 7.0, 14.0, 9.0, 5.0, 10.98, 9.33, 8.65, 7.59, 7.3, 7.52], "aq": [10.0, 6.0, 7.0, 6.0, 4.0, 6.0, 7.0, 7.0, 7.0, 7.0, 10.0]}, {"unid": "2104", "af": [13.0, 6.0, 6.0, 5.0, 6.0, 6.68, 6.13, 5.5, 6.62, 5.48, 4.38], "aq": [2.0, 4.0, 5.0, 3.0, 5.0, 4.0, 4.0, 4.0, 6.0, 5.0, 4.0]}, {"unid": "2201", "af": [20.0, 17.0, 12.0, 11.0, 13.0, 15.12, 14.42, 9.68, 11.78, 14.3, 12.79], "aq": [12.0, 10.0, 7.0, 6.0, 11.0, 9.0, 12.0, 7.0, 10.0, 12.0, 10.0]}, {"unid": "2202", "af": [16.0, 8.0, 7.0, 2.0, 6.0, 6.52, 8.36, 7.5, 7.62, 7.3, 5.87], "aq": [15.0, 8.0, 8.0, 3.0, 7.0, 6.0, 11.0, 11.0, 16.78, 12.0, 11.0]}, {"unid": "2203", "af": [16.0, 11.0, 9.0, 13.0, 11.0, 11.69, 11.9, 10.43, 10.27, 12.37, 12.75], "aq": [17.0, 20.0, 17.0, 15.0, 18.0, 17.0, 18.0, 14.0, 20.0, 23.0, 22.0]}, {"unid": "2204", "af": [5.0, 11.0, 12.0, 13.0, 12.0, 14.49, 16.84, 13.08, 13.87, 14.32, 10.97], "aq": [13.0, 9.0, 9.0, 8.0, 7.0, 8.0, 11.0, 8.0, 9.0, 10.0, 7.0]}, {"unid": "2301", "af": [0.0, 12.0, 9.0, 12.0, 7.0, 7.17, 6.8, 5.11, 5.4, 5.81, 6.25], "aq": [3.0, 1.0, 8.0, 10.0, 10.0, 8.0, 10.0, 8.0, 9.0, 12.0, 15.0]}, {"unid": "2302", "af": [8.0, 10.0, 9.0, 10.0, 11.0, 8.34, 9.55, 8.8, 8.48, 8.71, 7.76], "aq": [9.0, 4.0, 4.0, 3.0, 4.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0]}, {"unid": "2303", "af": [0.0, 15.0, 21.0, 11.0, 20.0, 19.78, 22.85, 35.01, 15.03, 12.11, 12.45], "aq": [4.0, 15.0, 15.0, 7.0, 15.0, 12.0, 13.0, 14.0, 12.0, 11.0, 11.0]}, {"unid": "2304", "af": [10.0, 11.0, 7.0, 13.0, 14.0, 7.28, 27.85, 5.87, 11.16, 12.21, 11.81], "aq": [21.0, 9.0, 6.0, 9.0, 8.0, 4.0, 8.0, 4.0, 10.0, 10.0, 9.0]}, {"unid": "2401", "af": [0.0, 0.0, 1.0, 0.0, 0.0, 1.08, 0.14, 0.15, 4.28, 2.16, 1.53], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]}, {"unid": "2402", "af": [0.0, 0.0, 0.0, 0.0, 1.0, 2.95, 4.21, 3.64, 3.58, 3.3, 5.51], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 3.0]}, {"unid": "2403", "af": [17.0, 13.0, 11.0, 13.0, 16.0, 15.06, 16.26, 8.69, 10.8, 12.87, 11.46], "aq": [8.0, 5.0, 4.0, 5.0, 7.0, 6.0, 6.0, 4.0, 6.0, 7.0, 6.0]}, {"unid": "2404", "af": [9.0, 6.0, 6.0, 5.0, 8.0, 7.35, 9.24, 5.61, 5.13, 5.65, 3.69], "aq": [18.0, 13.0, 16.0, 10.0, 15.0, 14.0, 16.0, 13.0, 14.0, 16.0, 10.0]}, {"unid": "2501", "af": [21.0, 8.0, 7.0, 8.0, 7.0, 5.17, 7.09, 7.23, 6.07, 8.4, 11.14], "aq": [14.0, 21.0, 18.0, 15.0, 20.0, 13.0, 21.0, 21.0, 23.0, 18.0, 21.0]}, {"unid": "2502", "af": [1.0, 1.0, 2.0, 2.0, 2.0, 2.03, 2.46, 1.25, 1.8, 1.44, 0.69], "aq": [1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]}, {"unid": "2503", "af": [11.0, 11.0, 11.0, 14.0, 11.0, 12.17, 11.54, 10.87, 5.03, 12.19, 11.71], "aq": [10.0, 6.0, 5.0, 5.0, 5.0, 6.0, 5.0, 4.0, 2.0, 5.0, 5.0]}, {"unid": "2504", "af": [13.0, 9.0, 7.0, 9.0, 8.0, 6.42, 7.89, 5.95, 6.43, 7.33, 7.91], "aq": [14.0, 7.0, 7.0, 6.0, 6.0, 5.0, 6.0, 5.0, 8.0, 12.0, 10.0]}, {"unid": "2601", "af": [0.0, 0.0, 1.0, 0.0, 0.0, 0.26, 0.05, 0.03, 0.08, 0.03, 0.02], "aq": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "2602", "af": [0.0, 0.0, 0.0, 7.0, 0.0, 3.48, 25.49, 32.09, 35.9, 27.5, 34.03], "aq": [10.0, 0.0, 0.0, 5.0, 0.0, 3.0, 21.0, 21.0, 29.0, 32.0, 34.0]}, {"unid": "2603", "af": [0.0, 0.0, 0.0, 0.0, 0.0, 0.81, 0.17, 0.0, 0.0, 0.0, 0.0], "aq": [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"unid": "2604", "af": [15.0, 6.0, 8.0, 10.0, 9.0, 7.39, 8.07, 7.66, 8.09, 6.8, 7.74], "aq": [19.0, 4.0, 6.0, 4.0, 5.0, 5.0, 6.0, 5.0, 7.0, 8.0, 8.0]}, {"unid": "2701", "af": [14.0, 29.0, 31.0, 17.0, 34.0, 23.95, 31.01, 20.8, 32.58, 21.87, 25.61], "aq": [31.0, 15.0, 14.0, 6.0, 16.0, 13.0, 16.0, 9.0, 20.0, 15.0, 14.0]}, {"unid": "2702", "af": [17.0, 10.0, 12.0, 14.0, 11.0, 15.64, 14.47, 8.01, 12.04, 9.8, 12.61], "aq": [12.0, 8.0, 8.0, 9.0, 7.0, 10.0, 11.0, 6.0, 11.0, 9.0, 6.0]}, {"unid": "2703", "af": [17.0, 9.0, 9.0, 7.0, 6.0, 7.89, 12.28, 7.77, 8.69, 6.87, 6.22], "aq": [10.0, 7.0, 7.0, 5.0, 4.0, 6.0, 7.0, 6.0, 8.0, 8.0, 6.0]}, {"unid": "2704", "af": [0.0, 6.0, 6.0, 4.0, 3.0, 2.26, 2.87, 1.51, 1.8, 4.31, 8.99], "aq": [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}], "areaComum": [200.8, 120.0, 185.6, 161.2, 134.8, 581.09, 127.95, 220.18, 78.53, 117.16, 281.63]};
+
+var MONTHS = GAS.months;
+var N = MONTHS.length;
+
+function round2(n){ return Math.round(n*100)/100; }
+function fmt(n){
+  return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function svgEl(tag, attrs){
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(var k in attrs){ el.setAttribute(k, attrs[k]); }
+  return el;
+}
+function getBoxSize(box){
+  var rect = box.getBoundingClientRect();
+  return {w: Math.max(rect.width, 300), h: Math.max(rect.height, 260)};
+}
+function debounce(fn, ms){
+  var t;
+  return function(){ var args = arguments; clearTimeout(t); t = setTimeout(function(){ fn.apply(null, args); }, ms); };
+}
+
+/* ============================================================
+   MERGE — junta água (af/aq/total) e gás por unidade
+   ============================================================ */
+var UNIT_MAP = {};
+AGUA.units.forEach(function(u){
+  var total = u.af.map(function(v,i){ return round2(v + u.aq[i]); });
+  UNIT_MAP[u.unid] = {unid:u.unid, af:u.af, aq:u.aq, totalAgua:total, gas:null};
+});
+GAS.units.forEach(function(u){
+  if(UNIT_MAP[u.unid]) UNIT_MAP[u.unid].gas = u.consumos;
+});
+var UNIT_LIST = Object.keys(UNIT_MAP)
+  .filter(function(k){ return UNIT_MAP[k].gas !== null; })
+  .sort(function(a,b){ return parseInt(a,10) - parseInt(b,10); })
+  .map(function(k){ return UNIT_MAP[k]; });
+
+/* ============================================================
+   SEÇÃO 1 — Total do condomínio, água x gás, eixo duplo
+   ============================================================ */
+function computeTotals(){
+  var gasTotals = MONTHS.map(function(m,i){
+    return GAS.units.reduce(function(s,u){ return s+u.consumos[i]; }, 0);
+  });
+  var aguaTotals = MONTHS.map(function(m,i){
+    var apto = AGUA.units.reduce(function(s,u){ return s+u.af[i]+u.aq[i]; }, 0);
+    return apto + AGUA.areaComum[i];
+  });
+  return {gas:gasTotals, agua:aguaTotals};
+}
+
+function renderTotalChart(){
+  var totals = computeTotals();
+  var box = document.getElementById('totalChartBox');
+  var tooltip = document.getElementById('totalTooltip');
+  var old = box.querySelector('svg');
+  if(old) old.remove();
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:56, bottom:34, left:56};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var maxAgua = Math.max.apply(null, totals.agua.concat([1])) * 1.18;
+  var maxGas = Math.max.apply(null, totals.gas.concat([1])) * 1.18;
+  var stepX = innerW/(N-1 || 1);
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gvA = (maxAgua*g/gridSteps);
+    var txtA = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label water', 'text-anchor':'end'});
+    txtA.textContent = gvA.toFixed(0);
+    svg.appendChild(txtA);
+    var gvG = (maxGas*g/gridSteps);
+    var txtG = svgEl('text', {x:margin.left+innerW+8, y:gy+4, class:'axis-label gas', 'text-anchor':'start'});
+    txtG.textContent = gvG.toFixed(0);
+    svg.appendChild(txtG);
+  }
+  for(var i=0;i<N;i++){
+    var lx = margin.left + stepX*i;
+    var lab = svgEl('text', {x:lx, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    lab.textContent = MONTHS[i];
+    svg.appendChild(lab);
+  }
+
+  function xyA(i, val){ return [margin.left + stepX*i, margin.top + innerH - (val/maxAgua)*innerH]; }
+  function xyG(i, val){ return [margin.left + stepX*i, margin.top + innerH - (val/maxGas)*innerH]; }
+
+  var ptsA = totals.agua.map(function(v,i){ return xyA(i,v); });
+  var dA = ptsA.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  var areaD = dA + ' L'+ptsA[ptsA.length-1][0].toFixed(1)+','+(margin.top+innerH).toFixed(1)+
+              ' L'+ptsA[0][0].toFixed(1)+','+(margin.top+innerH).toFixed(1)+' Z';
+  svg.appendChild(svgEl('path', {d:areaD, fill:'rgba(46,155,240,0.07)', stroke:'none'}));
+  svg.appendChild(svgEl('path', {d:dA, fill:'none', stroke:'#2e9bf0', 'stroke-width':2.75, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+
+  var ptsG = totals.gas.map(function(v,i){ return xyG(i,v); });
+  var dG = ptsG.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:dG, fill:'none', stroke:'#ff8a3d', 'stroke-width':2.75, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+
+  ptsA.forEach(function(p,i){
+    svg.appendChild(svgEl('circle', {cx:p[0], cy:p[1], r:4.5, fill:'#2e9bf0', stroke:'#ffffff', 'stroke-width':2}));
+  });
+  ptsG.forEach(function(p,i){
+    svg.appendChild(svgEl('circle', {cx:p[0], cy:p[1], r:4.5, fill:'#ff8a3d', stroke:'#ffffff', 'stroke-width':2}));
+  });
+
+  // colunas de hover para tooltip combinada
+  var bandW = innerW/N;
+  for(var i=0;i<N;i++){
+    (function(i){
+      var hx = margin.left + bandW*i;
+      var col = svgEl('rect', {x:hx, y:margin.top, width:bandW, height:innerH, class:'hover-col'});
+      col.addEventListener('mousemove', function(e){
+        var bRect = box.getBoundingClientRect();
+        tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+'</div>'+
+          '<div class="t-row"><span class="t-dot" style="background:#2e9bf0;"></span>Água: <b>'+fmt(totals.agua[i])+' m³</b></div>'+
+          '<div class="t-row"><span class="t-dot" style="background:#ff8a3d;"></span>Gás: <b>'+fmt(totals.gas[i])+' m³</b></div>';
+        tooltip.style.left = (e.clientX - bRect.left) + 'px';
+        tooltip.style.top = (e.clientY - bRect.top) + 'px';
+        tooltip.classList.add('show');
+      });
+      col.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+      svg.appendChild(col);
+    })(i);
+  }
+
+  box.appendChild(svg);
+
+  var statsGrid = document.getElementById('totalMonthStats');
+  statsGrid.innerHTML = MONTHS.map(function(m, i){
+    return '<div class="month-stat-cell">'+
+      '<div class="m-label">'+m+'</div>'+
+      '<div class="m-row water">Água <b>'+fmt(totals.agua[i])+' m³</b></div>'+
+      '<div class="m-row gas">Gás <b>'+fmt(totals.gas[i])+' m³</b></div>'+
+    '</div>';
+  }).join('');
+}
+renderTotalChart();
+
+/* ============================================================
+   SEÇÃO 2 — Por apartamento: AF/AQ/Total (barras) x Gás (linha)
+   ============================================================ */
+var unitSel = document.getElementById('unitSelect');
+UNIT_LIST.forEach(function(u){
+  var o = document.createElement('option'); o.value = u.unid; o.textContent = 'Apto '+u.unid;
+  unitSel.appendChild(o);
+});
+
+var GLOBAL_MAX_WATER = (function(){
+  var vals = [1];
+  UNIT_LIST.forEach(function(u){ vals = vals.concat(u.af, u.aq, u.totalAgua); });
+  return Math.max.apply(null, vals) * 1.2;
+})();
+var GLOBAL_MAX_GAS = (function(){
+  var vals = [1];
+  UNIT_LIST.forEach(function(u){ vals = vals.concat(u.gas); });
+  return Math.max.apply(null, vals) * 1.2;
+})();
+
+function pearson(x, y){
+  var n = x.length;
+  var mx = x.reduce(function(a,b){return a+b;},0)/n;
+  var my = y.reduce(function(a,b){return a+b;},0)/n;
+  var num=0, dx2=0, dy2=0;
+  for(var i=0;i<n;i++){
+    var dx = x[i]-mx, dy = y[i]-my;
+    num += dx*dy; dx2 += dx*dx; dy2 += dy*dy;
+  }
+  if(dx2===0 || dy2===0) return null;
+  return num/Math.sqrt(dx2*dy2);
+}
+
+function renderUnitChart(unid){
+  var u = UNIT_MAP[unid];
+  var box = document.getElementById('unitChartBox');
+  var tooltip = document.getElementById('unitTooltip');
+  var old = box.querySelector('svg');
+  if(old) old.remove();
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:52, bottom:34, left:48};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var maxWater = GLOBAL_MAX_WATER;
+  var maxGas = GLOBAL_MAX_GAS;
+  var bandW = innerW / N;
+  var barW = Math.min((bandW*0.68)/3, 20);
+  var groupW = barW*3 + 4;
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gvW = (maxWater*g/gridSteps);
+    var txtW = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label water', 'text-anchor':'end'});
+    txtW.textContent = gvW.toFixed(0);
+    svg.appendChild(txtW);
+    var gvG = (maxGas*g/gridSteps);
+    var txtG = svgEl('text', {x:margin.left+innerW+8, y:gy+4, class:'axis-label gas', 'text-anchor':'start'});
+    txtG.textContent = gvG.toFixed(0);
+    svg.appendChild(txtG);
+  }
+
+  function makeBar(x, val, color, tipLabel, i){
+    var barH = maxWater>0 ? (val/maxWater)*innerH : 0;
+    var y = margin.top + innerH - barH;
+    var rect = svgEl('rect', {x:x, y:y, width:barW, height:Math.max(barH,1.5), rx:4, ry:4, class:'bar-rect', fill:color});
+    rect.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · '+tipLabel+'</div><b>'+fmt(val)+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    rect.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(rect);
+  }
+
+  for(var i=0;i<N;i++){
+    var groupX = margin.left + bandW*i + (bandW-groupW)/2;
+    makeBar(groupX, u.af[i], '#2e9bf0', 'Água fria (AF)', i);
+    makeBar(groupX+barW+2, u.aq[i], '#ff6b3d', 'Água quente (AQ)', i);
+    makeBar(groupX+(barW+2)*2, u.totalAgua[i], '#7c5cff', 'Total água (AF+AQ)', i);
+
+    var label = svgEl('text', {x:margin.left+bandW*i+bandW/2, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    label.textContent = MONTHS[i];
+    svg.appendChild(label);
+  }
+
+  // linha de gás sobreposta (eixo direito)
+  function xyG(i, val){ return [margin.left + bandW*i + bandW/2, margin.top + innerH - (val/maxGas)*innerH]; }
+  var ptsG = u.gas.map(function(v,i){ return xyG(i,v); });
+  var dG = ptsG.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:dG, fill:'none', stroke:'#c2540a', 'stroke-width':2.75, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+  ptsG.forEach(function(p,i){
+    var dot = svgEl('circle', {cx:p[0], cy:p[1], r:5, fill:'#c2540a', stroke:'#ffffff', 'stroke-width':2, style:'cursor:pointer;'});
+    dot.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+MONTHS[i]+' · Gás</div><b>'+fmt(u.gas[i])+' m³</b>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    dot.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(dot);
+  });
+
+  box.appendChild(svg);
+
+  // estatísticas + correlação AQ x Gás
+  var totalAF = u.af.reduce(function(a,b){return a+b;},0);
+  var totalAQ = u.aq.reduce(function(a,b){return a+b;},0);
+  var totalGas = u.gas.reduce(function(a,b){return a+b;},0);
+  var corr = pearson(u.aq, u.gas);
+  var ratios = [];
+  for(var k=0;k<N;k++){ if(u.aq[k] > 0.5) ratios.push(u.gas[k]/u.aq[k]); }
+  var avgRatio = ratios.length ? ratios.reduce(function(a,b){return a+b;},0)/ratios.length : null;
+
+  var statsWrap = document.getElementById('unitStats');
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="l">Total água quente (AQ)</div><div class="v" style="color:var(--hot-2);">'+fmt(totalAQ)+' m³</div></div>'+
+    '<div class="stat"><div class="l">Total gás</div><div class="v" style="color:var(--gas-2);">'+fmt(totalGas)+' m³</div></div>'+
+    '<div class="stat"><div class="l">Total água fria (AF)</div><div class="v" style="color:var(--water-2);">'+fmt(totalAF)+' m³</div></div>'+
+    '<div class="stat"><div class="l">Correlação AQ x Gás</div><div class="v">'+(corr===null?'—':corr.toFixed(2))+'</div><div class="sub">'+(corr===null?'dados insuficientes':corrLabel(corr))+'</div></div>'+
+    '<div class="stat"><div class="l">Gás por m³ de AQ (média)</div><div class="v">'+(avgRatio===null?'—':fmt(avgRatio))+'</div><div class="sub">m³ de gás por m³ de AQ</div></div>';
+
+  var corrNote = document.getElementById('corrNote');
+  if(corr === null){
+    corrNote.innerHTML = 'Não foi possível calcular a correlação para a unidade <b>'+u.unid+'</b> — consumo de água quente insuficiente no período.';
+  } else {
+    var strength = Math.abs(corr) >= 0.7 ? 'forte' : (Math.abs(corr) >= 0.4 ? 'moderada' : 'fraca');
+    var direction = corr >= 0 ? 'positiva' : 'negativa';
+    corrNote.innerHTML = 'Na unidade <b>'+u.unid+'</b>, a correlação entre água quente e gás ao longo dos '+N+' meses é <b>'+strength+' e '+direction+'</b> (r = '+corr.toFixed(2)+'). '+
+      (corr >= 0.4
+        ? 'Isso sugere que boa parte do consumo de gás dessa unidade acompanha o uso de água quente.'
+        : 'Isso sugere que o consumo de gás dessa unidade não acompanha de perto as variações de água quente — pode haver outros usos de gás (fogão, por exemplo) pesando mais na conta.');
+  }
+}
+function corrLabel(corr){
+  var strength = Math.abs(corr) >= 0.7 ? 'forte' : (Math.abs(corr) >= 0.4 ? 'moderada' : 'fraca');
+  return strength + ', ' + (corr>=0?'positiva':'negativa');
+}
+
+renderUnitChart(UNIT_LIST[0].unid);
+unitSel.addEventListener('change', function(e){ renderUnitChart(e.target.value); });
+
+/* ============================================================
+   SEÇÃO 3 e 4 — Modelo água quente → gás esperado
+   ============================================================
+   Como a leitura de água é visual (confiável) e a de gás é por
+   telemetria, tratamos o AQ como referência e estimamos o gás
+   esperado de cada unidade com uma reta robusta (Theil-Sen),
+   menos sensível a outliers do que uma regressão comum — o que
+   importa, já que é justamente o outlier que queremos detectar.
+*/
+
+/* ============================================================
+   SEÇÃO 3 e 4 — Modelo água quente → gás esperado
+   ============================================================
+   Como a leitura de água é visual (confiável) e a de gás é por
+   telemetria, tratamos o AQ como referência e estimamos o gás
+   esperado de cada unidade com uma reta robusta (Theil-Sen),
+   menos sensível a outliers do que uma regressão comum — o que
+   importa, já que é justamente o outlier que queremos detectar.
+
+   MODELO INDIVIDUAL: inclinação e intercepto estimados só com os
+   dados da própria unidade — exige que o AQ varie o suficiente
+   (pares de meses com ΔAQ > 1 m³) e que a inclinação resultante
+   seja fisicamente plausível (b ≥ 0; mais AQ nunca deveria reduzir
+   o gás esperado).
+
+   MODELO POR SEMELHANÇA: quando o AQ da unidade não varia o
+   bastante para um modelo individual confiável, a inclinação (b)
+   é emprestada da mediana das unidades da mesma "coluna" do
+   prédio (mesma posição por andar — 501/601/701... — provável
+   mesma planta e mesmo tipo de aquecedor) que têm modelo
+   individual. Só o intercepto (a) continua sendo estimado com os
+   dados da própria unidade, calculado como a mediana de
+   (gás − b_ref×AQ) mês a mês — o que não exige variação de AQ,
+   já que não depende de comparar pares de meses.
+*/
+
+function median(arr){
+  var s = arr.slice().sort(function(a,b){ return a-b; });
+  var mid = Math.floor(s.length/2);
+  return s.length % 2 ? s[mid] : (s[mid-1]+s[mid])/2;
+}
+
+// Estimador Theil-Sen: inclinação = mediana das inclinações entre todos os pares de meses
+// com ΔAQ maior que minDx (piso que evita denominadores minúsculos e instáveis).
+function theilSenModel(aqArr, gasArr, minDx){
+  minDx = (minDx === undefined) ? 1.0 : minDx;
+  var slopes = [];
+  for(var i=0;i<aqArr.length;i++){
+    for(var j=i+1;j<aqArr.length;j++){
+      var dx = aqArr[j]-aqArr[i];
+      if(Math.abs(dx) > minDx){ slopes.push((gasArr[j]-gasArr[i])/dx); }
+    }
+  }
+  if(slopes.length < 3) return null; // AQ não varia o suficiente para estimar uma reta confiável
+  var b = median(slopes);
+  var intercepts = aqArr.map(function(v,i){ return gasArr[i] - b*v; });
+  var a = median(intercepts);
+  return {a:a, b:b, nPairs:slopes.length};
+}
+
+function buildIndividualModel(u){
+  var m = theilSenModel(u.aq, u.gas, 1.0);
+  if(m && m.b >= 0) return m; // descarta inclinação negativa: fisicamente implausível
+  return null;
+}
+
+// Modelos individuais confiáveis, calculados uma vez para todas as unidades —
+// servem tanto para uso direto quanto como fonte de peers do modelo por semelhança.
+var INDIVIDUAL_MODELS = {};
+UNIT_LIST.forEach(function(u){
+  var m = buildIndividualModel(u);
+  if(m) INDIVIDUAL_MODELS[u.unid] = m;
+});
+
+function coluna(unid){ return unid.slice(-2); }
+
+function buildSimilarityModel(u){
+  var col = coluna(u.unid);
+  var colPeers = UNIT_LIST.filter(function(p){ return p.unid!==u.unid && coluna(p.unid)===col && INDIVIDUAL_MODELS[p.unid]; });
+  var source = 'coluna';
+  var peers = colPeers;
+  if(peers.length < 3){
+    peers = UNIT_LIST.filter(function(p){ return p.unid!==u.unid && INDIVIDUAL_MODELS[p.unid]; });
+    source = 'condominio';
+  }
+  if(peers.length === 0) return null; // não deveria acontecer (sempre há modelos individuais no condomínio)
+
+  var bRef = median(peers.map(function(p){ return INDIVIDUAL_MODELS[p.unid].b; }));
+  var residuals = u.gas.map(function(v,i){ return v - bRef*u.aq[i]; });
+  var aHybrid = median(residuals);
+  return {a:aHybrid, b:bRef, source:source, peerCount:peers.length, coluna:col};
+}
+
+// Resolve, para uma unidade, qual modelo usar e com que rótulo exibir.
+function resolveModel(u){
+  var ind = INDIVIDUAL_MODELS[u.unid];
+  if(ind){ return {a:ind.a, b:ind.b, type:'individual', meta:{nPairs:ind.nPairs}}; }
+  var sim = buildSimilarityModel(u);
+  if(sim){ return {a:sim.a, b:sim.b, type:'similarity', meta:{source:sim.source, peerCount:sim.peerCount, coluna:sim.coluna}}; }
+  return null;
+}
+
+// Resíduos + limiar robusto (MAD) para flagar meses fora do padrão da própria unidade
+function computeResidualAnalysis(u){
+  var model = resolveModel(u);
+  var perMonth = MONTHS.map(function(m,i){ return {month:m, idx:i, aq:u.aq[i], gasReal:u.gas[i]}; });
+  if(!model){ return {model:null, perMonth:perMonth}; }
+
+  var resids = perMonth.map(function(r){
+    var exp = Math.max(0, model.a + model.b*r.aq); // gás nunca é negativo na realidade
+    r.gasExp = round2(exp);
+    r.resid = round2(r.gasReal - exp);
+    return r.resid;
+  });
+  var medResid = median(resids);
+  var mad = median(resids.map(function(v){ return Math.abs(v-medResid); }));
+  var scaledMad = mad*1.4826; // constante para aproximar o desvio padrão de forma robusta
+  var threshold = Math.max(3, 2.5*scaledMad); // piso de 3 m³ para não flagar ruído irrelevante
+
+  perMonth.forEach(function(r){
+    var dev = r.resid - medResid;
+    r.flag = Math.abs(dev) > threshold;
+    r.flagType = r.flag ? (dev > 0 ? 'high' : 'low') : null;
+  });
+  return {model:model, medResid:medResid, mad:mad, scaledMad:scaledMad, threshold:threshold, perMonth:perMonth};
+}
+
+/* -------- Alerta estrutural: AQ zerado o período inteiro --------
+   Quando o AQ nunca varia (fica em zero o tempo todo), o problema não é
+   "o modelo é ruim", é que não há base nenhuma pra comparar. Usamos AF
+   (água fria) e gás como evidência cruzada pra separar hidrômetro
+   travado (unidade claramente ocupada e ativa) de unidade vazia
+   (nenhum consumo de nenhum tipo). Casos que não se encaixam com
+   segurança em nenhum dos dois ficam como "indeterminado".
+*/
+var AQ_FLAT_THRESHOLD = 1;   // soma de AQ no período abaixo disso = "zerado"
+var AF_VAZIA_THRESHOLD = 10; // soma de AF no período abaixo disso = sem uso de água nenhum
+var GAS_TRAVADO_THRESHOLD = 10; // soma de gás no período acima disso = evidência de ocupação ativa
+
+function buildStructuralFlag(u){
+  var aqTotal = u.aq.reduce(function(a,b){ return a+b; }, 0);
+  if(aqTotal >= AQ_FLAT_THRESHOLD) return null; // AQ varia normalmente, não se aplica
+
+  var afTotal = u.af.reduce(function(a,b){ return a+b; }, 0);
+  var gasTotal = u.gas.reduce(function(a,b){ return a+b; }, 0);
+
+  if(afTotal < AF_VAZIA_THRESHOLD){
+    return {type:'vacant', afTotal:afTotal, gasTotal:gasTotal};
+  }
+  if(afTotal >= AF_VAZIA_THRESHOLD && gasTotal >= GAS_TRAVADO_THRESHOLD){
+    return {type:'aq_stuck', afTotal:afTotal, gasTotal:gasTotal};
+  }
+  return {type:'indeterminate', afTotal:afTotal, gasTotal:gasTotal};
+}
+
+/* -------- Alerta estatístico: modelo pouco preciso --------
+   Mede o limiar de alerta (MAD) como proporção da própria média de gás
+   da unidade — só faz sentido em unidades com consumo relevante (senão
+   o piso mínimo de 3 m³ do limiar distorce a razão). Só se aplica
+   quando não há alerta estrutural (AQ flat já tem explicação melhor).
+*/
+var IMPRECISE_RATIO_THRESHOLD = 0.70;
+var IMPRECISE_MIN_MEAN_GAS = 5;
+
+function buildImprecisionFlag(u, analysis){
+  if(!analysis.model) return null;
+  var meanGas = u.gas.reduce(function(a,b){ return a+b; }, 0) / N;
+  if(meanGas < IMPRECISE_MIN_MEAN_GAS) return null;
+  var ratio = analysis.threshold / meanGas;
+  if(ratio > IMPRECISE_RATIO_THRESHOLD){
+    return {ratio:ratio, meanGas:meanGas};
+  }
+  return null;
+}
+
+// Padrões literais, independentes do modelo de regressão
+function patternFlags(u){
+  var flags = [];
+  for(var i=1;i<N;i++){
+    var aqPrev=u.aq[i-1], aqCur=u.aq[i], gasPrev=u.gas[i-1], gasCur=u.gas[i];
+
+    // AQ caiu de forma relevante (ou zerou) mas o gás não acompanhou a queda
+    if(aqPrev > 0.5){
+      var aqDropRatio = (aqPrev-aqCur)/aqPrev;
+      if(aqDropRatio >= 0.5){
+        var gasDropRatio = gasPrev > 0.01 ? (gasPrev-gasCur)/gasPrev : 0;
+        if(gasDropRatio < 0.2){
+          flags.push({
+            idx:i, type:'leak',
+            detail:'Água quente caiu '+(aqDropRatio*100).toFixed(0)+'% (de '+fmt(aqPrev)+' para '+fmt(aqCur)+' m³), mas o gás variou apenas '+(gasDropRatio*100).toFixed(0)+'% (de '+fmt(gasPrev)+' para '+fmt(gasCur)+' m³).',
+            magnitude: aqDropRatio*100 + (gasCur)
+          });
+        }
+      }
+    }
+    // Leitura de gás idêntica ao mês anterior enquanto o AQ mudou de forma relevante
+    if(Math.abs(gasCur-gasPrev) < 0.015 && gasCur > 0.01){
+      var aqChange = Math.abs(aqCur-aqPrev);
+      var aqChangeRatio = aqPrev > 0.5 ? aqChange/aqPrev : (aqChange > 1 ? 1 : 0);
+      if(aqChangeRatio >= 0.3 || aqChange >= 2){
+        flags.push({
+          idx:i, type:'stuck',
+          detail:'Gás idêntico ao mês anterior ('+fmt(gasCur)+' m³), enquanto a água quente foi de '+fmt(aqPrev)+' para '+fmt(aqCur)+' m³.',
+          magnitude: aqChange
+        });
+      }
+    }
+  }
+  return flags;
+}
+
+/* -------- Seção 3: gráfico + tabela por unidade -------- */
+var modelUnitSel = document.getElementById('modelUnitSelect');
+UNIT_LIST.forEach(function(u){
+  var o = document.createElement('option'); o.value = u.unid; o.textContent = 'Apto '+u.unid;
+  modelUnitSel.appendChild(o);
+});
+
+function renderModelSection(unid){
+  var u = UNIT_MAP[unid];
+  var analysis = computeResidualAnalysis(u);
+  var box = document.getElementById('modelChartBox');
+  box.innerHTML = '<div class="svg-tooltip" id="modelTooltip"></div>';
+  var tooltip = document.getElementById('modelTooltip');
+  var emptyMsg = document.getElementById('modelEmptyMsg');
+  var statsWrap = document.getElementById('modelStats');
+  var tbody = document.getElementById('modelTableBody');
+  var badgeWrap = document.getElementById('modelTypeBadgeWrap');
+
+  if(!analysis.model){
+    // caso defensivo — não deveria ocorrer, já que sempre há modelos individuais no condomínio
+    // que servem de referência para o modelo por semelhança.
+    badgeWrap.innerHTML = '';
+    emptyMsg.innerHTML = '<div class="model-empty">Não foi possível estimar nenhum modelo (individual ou por semelhança) para a unidade <b>'+u.unid+'</b>. A análise de padrões abaixo continua válida.</div>';
+    statsWrap.innerHTML = '';
+    tbody.innerHTML = MONTHS.map(function(m,i){
+      return '<tr><td>'+m+'</td><td>'+fmt(u.aq[i])+'</td><td>'+fmt(u.gas[i])+'</td><td>—</td><td>—</td><td><span class="situacao-tag na">sem modelo</span></td></tr>';
+    }).join('');
+    renderModelPatternAlerts(u);
+    return;
+  }
+  emptyMsg.innerHTML = '';
+
+  if(analysis.model.type === 'individual'){
+    badgeWrap.innerHTML = '<span class="model-type-badge individual">Modelo individual</span>'+
+      '<div class="model-type-note">Inclinação e intercepto estimados só com os '+N+' meses da própria unidade ('+analysis.model.meta.nPairs+' pares de meses usados).</div>';
+  } else {
+    var srcLabel = analysis.model.meta.source === 'coluna'
+      ? 'unidades da coluna "'+analysis.model.meta.coluna+'" ('+analysis.model.meta.peerCount+' unidades com modelo individual)'
+      : 'todo o condomínio ('+analysis.model.meta.peerCount+' unidades com modelo individual, poucos peers na mesma coluna)';
+    badgeWrap.innerHTML = '<span class="model-type-badge similarity">Modelo por semelhança</span>'+
+      '<div class="model-type-note">O AQ desta unidade não varia o suficiente para um modelo individual confiável. A inclinação foi emprestada de '+srcLabel+'; o intercepto continua sendo estimado com os dados da própria unidade.</div>';
+  }
+
+  var structFlag = buildStructuralFlag(u);
+  if(structFlag){
+    var structHtml;
+    if(structFlag.type === 'aq_stuck'){
+      structHtml = '<span class="type-badge aq_stuck">Hidrômetro de AQ possivelmente travado</span>'+
+        '<div class="model-type-note">AQ ficou em zero o período inteiro, mas a unidade consumiu '+fmt(structFlag.afTotal)+' m³ de água fria e '+fmt(structFlag.gasTotal)+' m³ de gás — evidência forte de que está ocupada e ativa. Vale verificar o hidrômetro de água quente presencialmente.</div>';
+    } else if(structFlag.type === 'vacant'){
+      structHtml = '<span class="type-badge vacant">Provável unidade vazia / não ocupada</span>'+
+        '<div class="model-type-note">AQ zerado e água fria quase nula ('+fmt(structFlag.afTotal)+' m³ no período inteiro) — padrão consistente com apartamento sem uso, não com hidrômetro travado.</div>';
+    } else {
+      structHtml = '<span class="type-badge indeterminate">AQ zerado — situação indeterminada</span>'+
+        '<div class="model-type-note">AQ zerado, com água fria de '+fmt(structFlag.afTotal)+' m³ e gás de '+fmt(structFlag.gasTotal)+' m³ no período — não há evidência suficiente para dizer se é hidrômetro travado ou baixa ocupação. Recomenda-se verificação presencial.</div>';
+    }
+    badgeWrap.innerHTML += '<div style="margin-top:10px;">'+structHtml+'</div>';
+  } else {
+    var impFlag = buildImprecisionFlag(u, analysis);
+    if(impFlag){
+      badgeWrap.innerHTML += '<div style="margin-top:10px;"><span class="type-badge imprecise">Modelo pouco preciso para esta unidade</span>'+
+        '<div class="model-type-note">O limiar de alerta (MAD) equivale a '+(impFlag.ratio*100).toFixed(0)+'% da média mensal de gás desta unidade ('+fmt(impFlag.meanGas)+' m³/mês) — bem acima do normal no condomínio. Os alertas de resíduo desta unidade têm confiança menor.</div></div>';
+    }
+  }
+
+  var size = getBoxSize(box);
+  var W = size.w, H = size.h;
+  var margin = {top:24, right:24, bottom:34, left:48};
+  var innerW = W - margin.left - margin.right;
+  var innerH = H - margin.top - margin.bottom;
+
+  var allVals = analysis.perMonth.reduce(function(acc,r){ return acc.concat([r.gasReal, r.gasExp]); }, [1]);
+  var maxVal = Math.max.apply(null, allVals) * 1.18;
+  var stepX = innerW/(N-1 || 1);
+
+  var svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, preserveAspectRatio:'xMidYMid meet'});
+
+  var gridSteps = 4;
+  for(var g=0; g<=gridSteps; g++){
+    var gy = margin.top + innerH - (innerH*g/gridSteps);
+    svg.appendChild(svgEl('line', {x1:margin.left, x2:margin.left+innerW, y1:gy, y2:gy, class:'grid-line'}));
+    var gv = (maxVal*g/gridSteps);
+    var txt = svgEl('text', {x:margin.left-8, y:gy+4, class:'axis-label', 'text-anchor':'end'});
+    txt.textContent = gv.toFixed(0);
+    svg.appendChild(txt);
+  }
+  for(var i=0;i<N;i++){
+    var lx = margin.left + stepX*i;
+    var lab = svgEl('text', {x:lx, y:H-margin.bottom+18, class:'axis-label', 'text-anchor':'middle'});
+    lab.textContent = MONTHS[i];
+    svg.appendChild(lab);
+  }
+
+  function xy(i, val){ return [margin.left+stepX*i, margin.top+innerH-(val/maxVal)*innerH]; }
+
+  // faixa de resíduo entre esperado e real
+  analysis.perMonth.forEach(function(r,i){
+    var pReal = xy(i, r.gasReal), pExp = xy(i, r.gasExp);
+    if(Math.abs(r.gasReal-r.gasExp) > 0.05){
+      var lineC = svgEl('line', {x1:pReal[0], y1:pReal[1], x2:pExp[0], y2:pExp[1],
+        stroke: r.resid>=0 ? 'rgba(229,72,77,0.35)' : 'rgba(20,184,129,0.35)', 'stroke-width':3});
+      svg.appendChild(lineC);
+    }
+  });
+
+  var ptsExp = analysis.perMonth.map(function(r,i){ return xy(i, r.gasExp); });
+  var dExp = ptsExp.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:dExp, fill:'none', stroke:'#9aa1a8', 'stroke-width':2, 'stroke-dasharray':'5,4', 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+
+  var ptsReal = analysis.perMonth.map(function(r,i){ return xy(i, r.gasReal); });
+  var dReal = ptsReal.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+  svg.appendChild(svgEl('path', {d:dReal, fill:'none', stroke:'#ff8a3d', 'stroke-width':2.75, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+
+  analysis.perMonth.forEach(function(r,i){
+    var p = ptsReal[i];
+    var dot = svgEl('circle', {cx:p[0], cy:p[1], r: r.flag?6.5:4.5, fill: r.flag?'#e5484d':'#ff8a3d', stroke:'#ffffff', 'stroke-width':2, style:'cursor:pointer;'});
+    dot.addEventListener('mousemove', function(e){
+      var bRect = box.getBoundingClientRect();
+      tooltip.innerHTML = '<div class="t-title">'+r.month+'</div>'+
+        '<div class="t-row"><span class="t-dot" style="background:#ff8a3d;"></span>Gás real: <b>'+fmt(r.gasReal)+' m³</b></div>'+
+        '<div class="t-row"><span class="t-dot" style="background:#9aa1a8;"></span>Gás esperado: <b>'+fmt(r.gasExp)+' m³</b></div>'+
+        '<div class="t-row">Resíduo: <b>'+(r.resid>0?'+':'')+fmt(r.resid)+' m³</b></div>';
+      tooltip.style.left = (e.clientX - bRect.left) + 'px';
+      tooltip.style.top = (e.clientY - bRect.top) + 'px';
+      tooltip.classList.add('show');
+    });
+    dot.addEventListener('mouseleave', function(){ tooltip.classList.remove('show'); });
+    svg.appendChild(dot);
+
+    var pExp = ptsExp[i];
+    svg.appendChild(svgEl('circle', {cx:pExp[0], cy:pExp[1], r:3, fill:'#ffffff', stroke:'#9aa1a8', 'stroke-width':1.5}));
+  });
+
+  box.appendChild(svg);
+
+  var flaggedCount = analysis.perMonth.filter(function(r){ return r.flag; }).length;
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="l">Inclinação do modelo</div><div class="v">'+analysis.model.b.toFixed(2)+'</div><div class="sub">m³ gás por m³ AQ</div></div>'+
+    '<div class="stat"><div class="l">Intercepto do modelo</div><div class="v">'+fmt(analysis.model.a)+'</div><div class="sub">gás independente do AQ (ex: fogão)</div></div>'+
+    '<div class="stat"><div class="l">Limiar de alerta (MAD)</div><div class="v">±'+fmt(analysis.threshold)+' m³</div><div class="sub">desvio robusto ao redor da mediana</div></div>'+
+    '<div class="stat"><div class="l">Meses com desvio relevante</div><div class="v" style="color:'+(flaggedCount>0?'var(--up)':'var(--text)')+';">'+flaggedCount+'</div><div class="sub">de '+N+' meses analisados</div></div>';
+
+  tbody.innerHTML = analysis.perMonth.map(function(r){
+    var tag;
+    if(!r.flag){ tag = '<span class="situacao-tag ok">dentro do esperado</span>'; }
+    else if(r.flagType==='high'){ tag = '<span class="situacao-tag high">gás acima do esperado</span>'; }
+    else { tag = '<span class="situacao-tag low">gás abaixo do esperado</span>'; }
+    return '<tr'+(r.flag?' class="flag-row"':'')+'>'+
+      '<td>'+r.month+'</td>'+
+      '<td>'+fmt(r.aq)+'</td>'+
+      '<td>'+fmt(r.gasReal)+'</td>'+
+      '<td>'+fmt(r.gasExp)+'</td>'+
+      '<td>'+(r.resid>0?'+':'')+fmt(r.resid)+'</td>'+
+      '<td>'+tag+'</td></tr>';
+  }).join('');
+
+  renderModelPatternAlerts(u);
+}
+
+function renderModelPatternAlerts(u){
+  var flags = patternFlags(u);
+  var wrap = document.getElementById('modelPatternAlerts');
+  if(flags.length === 0){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<div class="mini-alert-list">' + flags.map(function(f){
+    var badge = f.type==='leak' ? '<span class="type-badge leak">AQ caiu, gás não</span>' : '<span class="type-badge stuck">medidor travado?</span>';
+    return '<div class="mini-alert-row">'+badge+'<span><b>'+MONTHS[f.idx]+'</b> — '+f.detail+'</span></div>';
+  }).join('') + '</div>';
+}
+
+renderModelSection(UNIT_LIST[0].unid);
+modelUnitSel.addEventListener('change', function(e){ renderModelSection(e.target.value); });
+
+/* -------- Seção 4: varredura do condomínio inteiro -------- */
+function buildCondoAlerts(){
+  var all = [];
+  UNIT_LIST.forEach(function(u){
+    var analysis = computeResidualAnalysis(u);
+    if(analysis.model){
+      var modelNote = analysis.model.type === 'individual' ? 'modelo individual' : 'modelo por semelhança';
+      analysis.perMonth.forEach(function(r){
+        if(r.flag){
+          all.push({
+            unid:u.unid, month:r.month, idx:r.idx, type:r.flagType,
+            magnitude: Math.abs(r.resid - analysis.medResid),
+            detail:'Gás real de '+fmt(r.gasReal)+' m³ vs. esperado de '+fmt(r.gasExp)+' m³ (com base no AQ de '+fmt(r.aq)+' m³) — resíduo de '+(r.resid>0?'+':'')+fmt(r.resid)+' m³. ('+modelNote+')'
+          });
+        }
+      });
+    }
+    patternFlags(u).forEach(function(f){
+      all.push({unid:u.unid, month:MONTHS[f.idx], idx:f.idx, type:f.type, magnitude:f.magnitude, detail:f.detail});
+    });
+
+    // Alertas de período inteiro (não amarrados a um mês específico)
+    var structFlag = buildStructuralFlag(u);
+    if(structFlag){
+      if(structFlag.type === 'aq_stuck'){
+        all.push({unid:u.unid, month:'Período todo', idx:null, type:'aq_stuck', magnitude:structFlag.gasTotal,
+          detail:'AQ ficou em zero nos '+N+' meses, mas a unidade consumiu '+fmt(structFlag.afTotal)+' m³ de água fria e '+fmt(structFlag.gasTotal)+' m³ de gás no período — indício forte de hidrômetro de água quente travado ou desconectado.'});
+      } else if(structFlag.type === 'vacant'){
+        all.push({unid:u.unid, month:'Período todo', idx:null, type:'vacant', magnitude:-structFlag.afTotal,
+          detail:'AQ zerado e água fria de apenas '+fmt(structFlag.afTotal)+' m³ nos '+N+' meses — padrão consistente com unidade sem uso, não com hidrômetro travado.'});
+      } else {
+        all.push({unid:u.unid, month:'Período todo', idx:null, type:'indeterminate', magnitude:structFlag.afTotal,
+          detail:'AQ zerado nos '+N+' meses, com água fria de '+fmt(structFlag.afTotal)+' m³ e gás de '+fmt(structFlag.gasTotal)+' m³ — não há evidência suficiente para classificar como hidrômetro travado ou baixa ocupação.'});
+      }
+    } else {
+      var impFlag = buildImprecisionFlag(u, analysis);
+      if(impFlag){
+        all.push({unid:u.unid, month:'Período todo', idx:null, type:'imprecise', magnitude:impFlag.ratio,
+          detail:'O limiar de alerta (MAD) equivale a '+(impFlag.ratio*100).toFixed(0)+'% da média mensal de gás desta unidade — os alertas de resíduo dela têm confiança menor que o normal.'});
+      }
+    }
+  });
+  return all;
+}
+
+var CONDO_ALERTS = buildCondoAlerts();
+var TYPE_PRIORITY = ['aq_stuck','leak','high','low','indeterminate','stuck','imprecise','vacant'];
+var TYPE_LABEL = {
+  leak:'AQ caiu, gás não acompanhou', high:'Gás acima do esperado', low:'Gás abaixo do esperado', stuck:'Medidor de gás travado?',
+  aq_stuck:'Hidrômetro de AQ travado?', vacant:'Unidade provavelmente vazia', indeterminate:'AQ zerado — indeterminado', imprecise:'Modelo pouco preciso'
+};
+
+var alertMonthSel = document.getElementById('alertMonthFilter');
+MONTHS.forEach(function(m, i){
+  var opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = m;
+  alertMonthSel.appendChild(opt);
+});
+
+function renderCondoAlerts(){
+  var typeFilter = document.getElementById('alertTypeFilter').value;
+  var monthFilter = alertMonthSel.value; // 'all' ou índice do mês
+  var byMonth = monthFilter==='all' ? CONDO_ALERTS : CONDO_ALERTS.filter(function(a){ return a.idx === parseInt(monthFilter,10); });
+  var list = byMonth.filter(function(a){ return typeFilter==='all' || a.type===typeFilter; });
+
+  list.sort(function(a,b){
+    var pa = TYPE_PRIORITY.indexOf(a.type), pb = TYPE_PRIORITY.indexOf(b.type);
+    if(pa !== pb) return pa - pb;
+    return b.magnitude - a.magnitude;
+  });
+
+  var container = document.getElementById('condoAlertContainer');
+  if(list.length === 0){
+    container.innerHTML = '<div class="alert-empty">Nenhum alerta encontrado para este filtro.</div>';
+  } else {
+    container.innerHTML = list.map(function(a){
+      return '<div class="alert-row '+a.type+'">'+
+        '<div class="alert-unit">Apto '+a.unid+'<span class="month">'+a.month+'</span></div>'+
+        '<div class="alert-detail">'+a.detail+'</div>'+
+        '<div class="type-badge '+a.type+'">'+TYPE_LABEL[a.type]+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  var counts = {leak:0, high:0, low:0, stuck:0, aq_stuck:0, vacant:0, indeterminate:0, imprecise:0};
+  byMonth.forEach(function(a){ counts[a.type]++; });
+  var statColor = {leak:'var(--up)', high:'var(--gas-2)', low:'var(--down)', stuck:'var(--newc)', aq_stuck:'#b3261e', vacant:'var(--text-faint)', indeterminate:'#8a6100', imprecise:'#5636d6'};
+  var statsWrap = document.getElementById('condoAlertStats');
+  statsWrap.innerHTML = TYPE_PRIORITY.map(function(t){
+    return '<div class="stat"><div class="l">'+TYPE_LABEL[t]+'</div><div class="v" style="color:'+statColor[t]+';">'+counts[t]+'</div></div>';
+  }).join('');
+}
+renderCondoAlerts();
+document.getElementById('alertTypeFilter').addEventListener('change', renderCondoAlerts);
+alertMonthSel.addEventListener('change', renderCondoAlerts);
+
+window.addEventListener('resize', debounce(function(){
+  renderTotalChart();
+  renderUnitChart(unitSel.value);
+  renderModelSection(modelUnitSel.value);
+}, 150));
+
+})();
+</script>
+
+</body>
+</html>

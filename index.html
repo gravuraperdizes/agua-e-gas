@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Residencial Gravura Perdizes — Dashboards de Consumo</title>
+<link rel="canonical" href="https://gravuraperdizes.github.io/agua-e-gas/">
+<meta property="og:title" content="Residencial Gravura Perdizes — Dashboards de Consumo">
+<meta property="og:description" content="Painéis de acompanhamento de consumo de água e gás das 92 unidades do Bloco A, atualizados mensalmente a partir dos relatórios da Gestway.">
+<meta property="og:url" content="https://gravuraperdizes.github.io/agua-e-gas/">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --bg: #ffffff;
+    --panel: #f7f7f8;
+    --panel-2: #eef0f1;
+    --line: #e1e4e7;
+    --gas: #ff8a3d;
+    --gas-2: #c2540a;
+    --water: #2e9bf0;
+    --water-2: #0f6fc0;
+    --combo-1: #2e9bf0;
+    --combo-2: #ff8a3d;
+    --text: #1c1f22;
+    --text-dim: #5b6168;
+    --text-faint: #9aa1a8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 520px at 12% -12%, rgba(46,155,240,0.05), transparent 58%),
+      radial-gradient(1000px 520px at 100% -4%, rgba(255,138,61,0.05), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Söhne', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height:100vh;
+    padding: 40px 20px 60px;
+  }
+  .wrap{max-width:1080px; margin:0 auto;}
+
+  header{
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    padding-bottom:28px; margin-bottom:40px;
+  }
+  .brand-eyebrow{
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--text-faint); font-weight:600; margin-bottom:10px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .dot-row{display:inline-flex; align-items:center; gap:4px;}
+  .dot-row span{width:7px;height:7px;border-radius:50%; display:inline-block;}
+  h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 34px; font-weight:600; margin:0; letter-spacing:-.01em;
+    color:var(--text);
+  }
+  .subtitle{
+    color:var(--text-dim); font-size:14px; margin:10px auto 0; max-width:520px; line-height:1.55;
+  }
+  .period-note{
+    margin-top:16px; font-size:12px; color:var(--text-faint);
+  }
+
+  .cards{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-bottom:36px;
+  }
+  @media (max-width:820px){ .cards{grid-template-columns:1fr;} }
+
+  .card{
+    display:block; text-decoration:none; color:inherit;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:16px;
+    padding:26px 24px; position:relative; overflow:hidden;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{
+    transform: translateY(-3px);
+    border-color: rgba(20,25,30,.18);
+    box-shadow: 0 14px 32px rgba(20,25,30,.08);
+  }
+  .card::after{
+    content:""; position:absolute; right:-30px; top:-30px; width:110px; height:110px;
+    border-radius:50%;
+  }
+  .card.gas::after{ background:radial-gradient(circle, rgba(255,138,61,.12), transparent 70%); }
+  .card.water::after{ background:radial-gradient(circle, rgba(46,155,240,.12), transparent 70%); }
+  .card.combo::after{ background:radial-gradient(circle, rgba(124,92,255,.12), transparent 70%); }
+
+  .card .icon-dot{
+    width:11px; height:11px; border-radius:50%; margin-bottom:16px;
+  }
+  .card.gas .icon-dot{ background:var(--gas); box-shadow:0 0 12px 2px rgba(255,138,61,.55); }
+  .card.water .icon-dot{ background:var(--water); box-shadow:0 0 12px 2px rgba(46,155,240,.55); }
+  .card.combo .icon-dot{ display:flex; gap:4px; background:none; box-shadow:none; width:auto; height:auto; }
+  .card.combo .icon-dot span{ width:11px; height:11px; border-radius:50%; display:inline-block; }
+  .card.combo .icon-dot .a{ background:var(--combo-1); box-shadow:0 0 12px 2px rgba(46,155,240,.5); }
+  .card.combo .icon-dot .b{ background:var(--combo-2); box-shadow:0 0 12px 2px rgba(255,138,61,.5); }
+
+  .card h2{
+    font-family: Georgia, serif; font-size:19px; margin:0 0 8px; color:var(--text);
+  }
+  .card p{
+    font-size:12.5px; color:var(--text-dim); line-height:1.55; margin:0 0 18px;
+  }
+  .card .go{
+    font-size:12px; font-weight:600; letter-spacing:.02em;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .card.gas .go{ color:var(--gas-2); }
+  .card.water .go{ color:var(--water-2); }
+  .card.combo .go{ color:#5636d6; }
+  .card .go .arrow{ transition: transform .15s ease; }
+  .card:hover .go .arrow{ transform: translateX(3px); }
+
+  footer{
+    text-align:center; color:var(--text-faint); font-size:11.5px;
+    border-top:1px solid var(--line); padding-top:20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand-eyebrow">
+      <span class="dot-row"><span style="background:var(--water);"></span><span style="background:var(--gas);"></span></span>
+      RESIDENCIAL GRAVURA PERDIZES
+    </div>
+    <h1>Dashboards de Consumo</h1>
+    <div class="subtitle">Painéis de acompanhamento de consumo de água e gás das 92 unidades do Bloco A, atualizados mensalmente a partir dos relatórios da Gestway.</div>
+    <div class="period-note">Última atualização: Ago/26</div>
+  </header>
+
+  <div class="cards">
+    <a class="card gas" href="gas.html">
+      <div class="icon-dot"></div>
+      <h2>Consumo de Gás</h2>
+      <p>Consumo mensal por unidade, comparativos, alertas de desvio, tendências sustentadas e registro de picos isolados.</p>
+      <div class="go">Abrir dashboard <span class="arrow">→</span></div>
+    </a>
+
+    <a class="card water" href="agua.html">
+      <div class="icon-dot"></div>
+      <h2>Consumo de Água</h2>
+      <p>Água fria e água quente por unidade, área comum, alertas por componente (AF/AQ) e consumo persistente em unidades atípicas.</p>
+      <div class="go">Abrir dashboard <span class="arrow">→</span></div>
+    </a>
+
+    <a class="card combo" href="combinado.html">
+      <div class="icon-dot"><span class="a"></span><span class="b"></span></div>
+      <h2>Água x Gás — Combinado</h2>
+      <p>Sobreposição dos dois consumos, modelo de água quente esperado para o gás e varredura de possíveis vazamentos ou erros de medição.</p>
+      <div class="go">Abrir dashboard <span class="arrow">→</span></div>
+    </a>
+  </div>
+
+  <footer>Dados extraídos dos relatórios da Gestway Gestão de Infraestruturas · Painéis renderizados em SVG nativo (sem dependências externas)</footer>
+</div>
+</body>
+</html>
